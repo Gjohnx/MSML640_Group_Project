@@ -10,18 +10,21 @@ Generate random scrambles.
 Optionally read/export JSON cube states.
 Deliver scan_cube(scramble: str = None) -> CubeState.
 Provide clean inputs for solvers and UI.
+
 👤 Member B – Core Cube Model & Notation
 
 Implement core/cube.py: Cube class, state representation, moves.
 Implement core/notation.py: parse & format move sequences.
 Implement validators (color counts, solvability checks).
 Deliver the engine that makes solving possible.
+
 👤 Member C – Beginner Solver
 
 Implement core/beginner_solver.py with 6 LBL stages.
 Each stage returns moves + explanation.
 Provide teaching-friendly solutions.
 Ensure integration with Cube model.
+
 👤 Member D – Integration & Backend
 
 Implement services/pipeline.py: glue importer + solver.
@@ -29,6 +32,7 @@ Provide CLI tool:
 python -m services.pipeline --scramble "R U R' U'" --mode beginner
 Add optional kociemba_solver.py for advanced mode.
 Handle logging, fallbacks, metrics.
+
 👤 Member E – QA / Testing / Baselining (Dedicated Tester)
 
 Sole focus: Quality assurance across all modules.
