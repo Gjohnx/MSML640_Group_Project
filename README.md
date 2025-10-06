@@ -1,40 +1,24 @@
 # MSML640_Group_Project
 
-📌 Revised Roles & Requirements
-
-👤 Member A – Simulation Import (Mock CV)
-
 Implement services/simulator_importer.py
 Parse scrambles (text → CubeState).
 Generate random scrambles.
 Optionally read/export JSON cube states.
 Deliver scan_cube(scramble: str = None) -> CubeState.
 Provide clean inputs for solvers and UI.
-
-👤 Member B – Core Cube Model & Notation
-
 Implement core/cube.py: Cube class, state representation, moves.
 Implement core/notation.py: parse & format move sequences.
 Implement validators (color counts, solvability checks).
 Deliver the engine that makes solving possible.
-
-👤 Member C – Beginner Solver
-
 Implement core/beginner_solver.py with 6 LBL stages.
 Each stage returns moves + explanation.
 Provide teaching-friendly solutions.
 Ensure integration with Cube model.
-
-👤 Member D – Integration & Backend
-
 Implement services/pipeline.py: glue importer + solver.
 Provide CLI tool:
 python -m services.pipeline --scramble "R U R' U'" --mode beginner
 Add optional kociemba_solver.py for advanced mode.
 Handle logging, fallbacks, metrics.
-
-👤 Member E – QA / Testing / Baselining (Dedicated Tester)
-
 Sole focus: Quality assurance across all modules.
 Responsibilities:
 Create tests/ folder with pytest structure.
@@ -48,6 +32,7 @@ Maintain CI/CD config (.github/workflows/ci.yml) to run pytest + coverage.
 Track bug reports, log reproducible steps, confirm fixes.
 Measure performance: average solve length, time.
 Deliver: Confidence that the system works under different inputs before release.
+
 📌 Acceptance Gates (Owned by QA Person)
 
 Baseline 1 (Week 3): Importer + Cube + simple solver stages tested with 10 scrambles.
