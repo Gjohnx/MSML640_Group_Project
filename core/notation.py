@@ -4,6 +4,7 @@ parse_move_sequence(sequence: str): Converts a string like "R U R'" into a list 
 format_move_sequence(moves: list): Converts a list of moves back into a standard string format.
 '''
 from enum import Enum
+from typing import List
 
 # U stands for Up.
 # F stands for Front.
