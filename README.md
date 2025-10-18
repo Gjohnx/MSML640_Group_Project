@@ -1,5 +1,12 @@
 # MSML640_Group_Project
 
+## Requirements
+
+The following runtimes and libraries have been installed to run this project:
+- Python 3.13
+
+## More
+
 Implement services/simulator_importer.py
 
 Parse scrambles (text → CubeState).

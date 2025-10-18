@@ -1,5 +1,7 @@
-pytest        
-pytest-cov     
-List
-random
-copy
+streamlit==1.50.0
+pytest==8.4.2
+watchdog==6.0.0
+# pytest-cov==6.0.0
+# List
+# random==0.20.1
+# copy==1.20.0
