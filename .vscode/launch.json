@@ -19,6 +19,18 @@
             }
         },
         {
+            "name": "Python: Run Pipeline",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "services.pipeline",
+            "args": [],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Pytest: Current File",
             "type": "debugpy",
             "request": "launch",
