@@ -4,6 +4,25 @@
 
 The following runtimes and libraries have been installed to run this project:
 - Python 3.13
+- Dependencies:
+    - streamlit (1.50.0) - Required for the Web UI
+    - watchdog==6.0.0 - File system monitoring for streamlit
+    - pytest==8.4.2 - Python testing framework
+
+## How to Run
+
+## Streamlit UI
+
+```bash
+streamlit run main.py
+```
+
+### Testing
+
+Run the test suite:
+```bash
+pytest tests/
+```
 
 ## More
 
