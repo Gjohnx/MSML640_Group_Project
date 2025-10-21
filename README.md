@@ -100,11 +100,3 @@ Baseline 3 (Week 8): Full app tested with 100 scrambles; all pass.
 Builders (A–D) move fast without worrying about writing tests.
 Tester (E) becomes the single source of truth for quality and reproducibility.
 Team avoids duplicated test effort and has objective baselines before the due date.
-
-## How to Run Visualization Demo
-
-After you have the extra library install in your environment, run the following code in bash
-
-```bash
-python visualization_test.py
-```
