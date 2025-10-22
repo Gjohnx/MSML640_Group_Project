@@ -4,19 +4,20 @@ Functionality to capture image input (e.g., from a webcam).
 Image processing/CV logic to detect sticker colors and map them to a CubeState.
 '''
 import streamlit as st
-from streamlit_webrtc import VideoTransformerBase
+from streamlit_webrtc import VideoProcessorBase
 import numpy as np
+import av
 
-class VideoProcessor(VideoTransformerBase):
+class VideoProcessor(VideoProcessorBase):
     
     def __init__(self):
         self.frame_count = 0
         
-    def transform(self, frame):
+    def recv(self, frame):
         
         img = frame.to_ndarray(format="bgr24")
         self.frame_count += 1
         
-        # DO SOMETHING HERE
+        # Image processing will be here
         
-        return img
+        return av.VideoFrame.from_ndarray(img, format="bgr24")
