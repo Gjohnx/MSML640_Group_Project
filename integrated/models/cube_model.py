@@ -13,8 +13,9 @@ class CubeModel(QObject):
     def __init__(self):
         super().__init__()
         # Rotation angles in degrees
-        self._rotation_x = 0.0
-        self._rotation_y = 0.0
+        # Start with a slight rotation of 15 degrees on both x and y axes
+        self._rotation_x = 15.0
+        self._rotation_y = 15.0
         self._rotation_z = 0.0
         
         # Cube colors: 6 faces, each with 9 squares (3x3)

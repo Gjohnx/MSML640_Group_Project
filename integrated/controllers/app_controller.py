@@ -6,19 +6,19 @@ from controllers.webcam_controller import WebcamController
 from controllers.processing_controller import ProcessingController
 from controllers.cube_controller import CubeController
 from controllers.controls_controller import ControlsController
-from services.algorithm_service import AlgorithmService
+from services.detection_service import DetectionService
 
 
 class AppController:
     
     def __init__(self):
         
-        # Get all algorithms from service layer
-        algorithms = AlgorithmService.get_all_algorithms()
+        # Get all detection methods from service layer
+        detection_methods = DetectionService.get_all_detection_methods()
         
         # Create models
         self.webcam_model = WebcamModel()
-        self.configuration_model = ConfigurationModel(algorithms)
+        self.configuration_model = ConfigurationModel(detection_methods)
         self.cube_model = CubeModel()
         
         # Create main window (pass configuration model so views can access it)
@@ -33,7 +33,8 @@ class AppController:
         self.processing_controller = ProcessingController(
             self.webcam_model,
             self.configuration_model,
-            self.main_window.get_processed_view()
+            self.main_window.get_processed_view(),
+            self.cube_model
         )
         
         self.cube_controller = CubeController(

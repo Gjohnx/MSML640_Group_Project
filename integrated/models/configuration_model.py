@@ -1,26 +1,27 @@
 from PySide6.QtCore import QObject, Signal
-from typing import Dict, Callable, Optional
+from typing import Dict, Optional
+from services.detection_methods import DetectionMethod
 
 
 class ConfigurationModel(QObject):
     
-    def __init__(self, algorithms: Dict[str, Callable]):
+    def __init__(self, detection_methods: Dict[str, DetectionMethod]):
         super().__init__()
-        self._algorithms: Dict[str, Callable] = algorithms
-        self._current_algorithm: Optional[str] = None
+        self._detection_methods: Dict[str, DetectionMethod] = detection_methods
+        self._current_detection_method: Optional[str] = None
     
-    def get_algorithm(self, name: str) -> Optional[Callable]:
-        return self._algorithms.get(name)
-    
-    @property
-    def available_algorithms(self) -> list[str]:
-        return list(self._algorithms.keys())
+    def get_detection_method(self, name: str) -> Optional[DetectionMethod]:
+        return self._detection_methods.get(name)
     
     @property
-    def current_algorithm(self) -> Optional[str]:
-        return self._current_algorithm
+    def available_detection_methods(self) -> list[str]:
+        return list(self._detection_methods.keys())
     
-    @current_algorithm.setter
-    def current_algorithm(self, value: Optional[str]):
-        self._current_algorithm = value
+    @property
+    def current_detection_method(self) -> Optional[str]:
+        return self._current_detection_method
+    
+    @current_detection_method.setter
+    def current_detection_method(self, value: Optional[str]):
+        self._current_detection_method = value
 

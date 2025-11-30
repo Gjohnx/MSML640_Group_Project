@@ -13,8 +13,9 @@ class CubeView(QWidget):
         super().__init__(parent)
         self._cube_model = None
         self._init_ui()
-        self._rotation_x = 0.0
-        self._rotation_y = 0.0
+        # Start with a slight rotation of 15 degrees on both x and y axes
+        self._rotation_x = 15.0
+        self._rotation_y = 15.0
         self._rotation_z = 0.0
         
         # Disable auto-rotation - user will control via mouse drag
