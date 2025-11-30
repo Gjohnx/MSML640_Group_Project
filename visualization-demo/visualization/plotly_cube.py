@@ -166,6 +166,57 @@ class PlotlyCube:
         
         return vertices, faces
     
+    def _get_rotation_matrix(self, axis, angle):
+        """Get rotation matrix for given axis and angle."""
+        c = np.cos(angle)
+        s = np.sin(angle)
+        
+        if axis == 'x':
+            return np.array([
+                [1, 0, 0],
+                [0, c, -s],
+                [0, s, c]
+            ])
+        elif axis == 'y':
+            return np.array([
+                [c, 0, s],
+                [0, 1, 0],
+                [-s, 0, c]
+            ])
+        else:  # z
+            return np.array([
+                [c, -s, 0],
+                [s, c, 0],
+                [0, 0, 1]
+            ])
+    
+    def _select_layer(self, face):
+        """Select cubelets in a given layer."""
+        eps = 0.5
+        selected = []
+        
+        for i, cubelet in enumerate(self.cubelets):
+            pos = cubelet['position']
+            if face == 'R' and pos[0] > 1 - eps:
+                selected.append(i)
+            elif face == 'L' and pos[0] < -1 + eps:
+                selected.append(i)
+            elif face == 'U' and pos[1] > 1 - eps:
+                selected.append(i)
+            elif face == 'D' and pos[1] < -1 + eps:
+                selected.append(i)
+            elif face == 'F' and pos[2] > 1 - eps:
+                selected.append(i)
+            elif face == 'B' and pos[2] < -1 + eps:
+                selected.append(i)
+        
+        return selected
+    
+    def _rotate_positions(self, positions, axis, angle):
+        """Rotate positions around an axis by angle."""
+        rotation_matrix = self._get_rotation_matrix(axis, angle)
+        return np.array([rotation_matrix @ pos for pos in positions])
+    
     def create_figure(self, title="Rubik's Cube Visualization"):
         """Create a Plotly figure with the current cube state."""
         meshes = []
@@ -197,9 +248,142 @@ class PlotlyCube:
         )
         
         return fig
+    
+    def create_animated_rotation(self, face, steps=15, title="Rubik's Cube Rotation"):
+        """Create an animated figure showing a layer rotation."""
+        # Determine axis and direction
+        axis_map = {
+            'R': ('x', 1), 'L': ('x', -1),
+            'U': ('y', 1), 'D': ('y', -1),
+            'F': ('z', 1), 'B': ('z', -1)
+        }
+        
+        axis, direction = axis_map[face.upper()[0]]
+        angle_total = np.pi / 2 * direction
+        
+        # Handle prime (') and double (2) moves
+        if "'" in face or 'i' in face:
+            angle_total *= -1
+        if '2' in face:
+            angle_total *= 2
+        
+        # Get layer cubelets
+        layer_indices = self._select_layer(face[0].upper())
+        
+        # Create frames for animation
+        frames = []
+        for step in range(steps + 1):
+            angle = (step / steps) * angle_total
+            frame_meshes = []
+            
+            for i, cubelet in enumerate(self.cubelets):
+                pos = cubelet['position'].copy()
+                
+                # Rotate layer cubelets
+                if i in layer_indices:
+                    rotation_matrix = self._get_rotation_matrix(axis, angle)
+                    pos = rotation_matrix @ pos
+                
+                cubelet_meshes = self._create_cubelet_mesh(pos, cubelet['colors'])
+                frame_meshes.extend(cubelet_meshes)
+            
+            frames.append(go.Frame(
+                data=frame_meshes,
+                name=f"frame_{step}"
+            ))
+        
+        # Create initial figure with first frame
+        fig = go.Figure(
+            data=frames[0].data,
+            frames=frames
+        )
+        
+        # Add animation controls
+        fig.update_layout(
+            scene=dict(
+                xaxis=dict(visible=False, range=[-2, 2]),
+                yaxis=dict(visible=False, range=[-2, 2]),
+                zaxis=dict(visible=False, range=[-2, 2]),
+                aspectmode='cube',
+                camera=dict(
+                    eye=dict(x=1.5, y=1.5, z=1.5)
+                )
+            ),
+            updatemenus=[{
+                'type': 'buttons',
+                'showactive': False,
+                'buttons': [
+                    {
+                        'label': '▶ Play',
+                        'method': 'animate',
+                        'args': [None, {
+                            'frame': {'duration': 50, 'redraw': True},
+                            'fromcurrent': True,
+                            'mode': 'immediate'
+                        }]
+                    },
+                    {
+                        'label': '⏸ Pause',
+                        'method': 'animate',
+                        'args': [[None], {
+                            'frame': {'duration': 0, 'redraw': False},
+                            'mode': 'immediate',
+                            'transition': {'duration': 0}
+                        }]
+                    }
+                ],
+                'x': 0.1,
+                'y': 0
+            }],
+            sliders=[{
+                'active': 0,
+                'steps': [
+                    {
+                        'args': [[f.name], {
+                            'frame': {'duration': 0, 'redraw': True},
+                            'mode': 'immediate'
+                        }],
+                        'label': str(i),
+                        'method': 'animate'
+                    }
+                    for i, f in enumerate(frames)
+                ],
+                'x': 0.1,
+                'len': 0.9,
+                'xanchor': 'left',
+                'y': 0,
+                'yanchor': 'top'
+            }],
+            margin=dict(l=0, r=0, t=30, b=50),
+            height=400,
+            width=400,
+            showlegend=False
+        )
+        
+        return fig
 
 def create_cube_visualization() -> go.Figure:
+    """Create a static Rubik's cube visualization."""
     cube = PlotlyCube(size=3)
-    
     return cube.create_figure()
+
+def create_animated_cube(move: str = "R", steps: int = 15) -> go.Figure:
+    """
+    Create an animated Rubik's cube showing a layer rotation.
+    
+    Args:
+        move: The move to animate (e.g., "R", "U'", "F2", "L")
+        steps: Number of animation frames (default 15)
+    
+    Returns:
+        Plotly Figure with animation
+        
+    Examples:
+        - "R" - Right face clockwise 90°
+        - "R'" - Right face counter-clockwise 90°
+        - "R2" - Right face 180°
+        - Other faces: L, U, D, F, B
+    """
+    cube = PlotlyCube(size=3)
+    return cube.create_animated_rotation(move, steps)
 

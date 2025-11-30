@@ -2,7 +2,7 @@ import streamlit as st
 from core import cube, beginner_solver
 from services.vision.video_processor import VideoProcessor
 from streamlit_webrtc import webrtc_streamer, RTCConfiguration
-from visualization.plotly_cube import create_cube_visualization
+from visualization.plotly_cube import create_cube_visualization, create_animated_cube
 import time
 
 def view_web_app():
@@ -32,8 +32,23 @@ def view_web_app():
         processed_placeholder = st.empty()
     
     st.markdown("## Rubik's Cube Visualization")
-    fig = create_cube_visualization()
-    st.plotly_chart(fig, config={'displayModeBar': False})
+    
+    # Choose between static and animated view
+    viz_type = st.radio("Visualization Type:", ["Static", "Animated Rotation"], horizontal=True)
+    
+    if viz_type == "Static":
+        fig = create_cube_visualization()
+        st.plotly_chart(fig, config={'displayModeBar': False})
+    else:
+        # Select move to animate
+        col_a, col_b = st.columns([1, 2])
+        with col_a:
+            move = st.selectbox("Select Move:", ["R", "R'", "R2", "L", "L'", "U", "U'", "D", "F", "B"])
+        with col_b:
+            st.info("Click ▶ Play to see the rotation animation")
+        
+        fig = create_animated_cube(move=move, steps=15)
+        st.plotly_chart(fig, config={'displayModeBar': False})
     
     if ctx.video_processor:
         if ctx.state.playing:
