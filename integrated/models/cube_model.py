@@ -19,14 +19,13 @@ class CubeModel(QObject):
         
         # Cube colors: 6 faces, each with 9 squares (3x3)
         # Colors: 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue
+        # Unknown color is -1
         self._colors = self._initialize_cube()
     
     def _initialize_cube(self) -> np.ndarray:
         # Shape: (6 faces, 3 rows, 3 cols)
-        colors = np.zeros((6, 3, 3), dtype=np.uint8)
-        # Each face gets its own color index
-        for face in range(6):
-            colors[face, :, :] = face
+        # Use int8 to support -1 for unknown colors
+        colors = np.full((6, 3, 3), -1, dtype=np.int8)
         return colors
     
     @property

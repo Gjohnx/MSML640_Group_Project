@@ -15,6 +15,7 @@ class CubeController:
         # Initialize view with current model state
         x, y, z = self.model.rotation
         self.view.set_rotation(x, y, z)
+        self.view.set_cube_model(self.model)
     
     def _on_rotation_changed(self, x: float, y: float, z: float):
         self.view.set_rotation(x, y, z)
