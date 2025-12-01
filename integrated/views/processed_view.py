@@ -4,7 +4,7 @@ from PySide6.QtGui import QImage, QPixmap
 import cv2
 import numpy as np
 
-
+# This view displays the Webcam feed after it has been processed by the detection method
 class ProcessedView(QWidget):
     
     def __init__(self, parent=None):
@@ -36,13 +36,10 @@ class ProcessedView(QWidget):
         if frame is None or frame.size == 0:
             return
         
-        # Handle grayscale frames
-        if len(frame.shape) == 2:
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-        else:
-            # Convert BGR to RGB
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # The frame sent by the controller is in BGR format, so we need to convert it to RGB
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
+        # Get the shape of the frame
         h, w, ch = rgb_frame.shape
         bytes_per_line = ch * w
         

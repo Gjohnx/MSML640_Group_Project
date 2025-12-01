@@ -1,36 +1,40 @@
 from PySide6.QtCore import QObject, Signal
 import numpy as np
 from typing import Tuple
+from models.state_model import AppState, StateModel
 
 
+# The Cube model contains the state of the cube, the known colors and the known rotation angles
 class CubeModel(QObject):
-    # Signal emitted when cube rotation changes
+    # When the rotation angles are changed by the controller, this signal is emitted to update the view
     rotation_changed = Signal(float, float, float)  # x, y, z rotation angles
     
-    # Signal emitted when cube state changes (colors, etc.)
+    # When the cube colors are changed by the controller, this signal is emitted to update the view
     cube_state_changed = Signal()
     
-    def __init__(self):
+    def __init__(self, state_model: StateModel):
         super().__init__()
         # Rotation angles in degrees
-        # Start with a slight rotation of 15 degrees on both x and y axes
+        # Start with a slight rotation of 15 degrees for a nicer view on startup
         self._rotation_x = 15.0
         self._rotation_y = 15.0
         self._rotation_z = 0.0
         
-        # Cube colors: 6 faces, each with 9 squares (3x3)
-        # Colors: 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue
-        # Unknown color is -1
+        # The cube is stored as a Numpy array with the following dimensions (6 faces, 3 rows, 3 columns)
+        # The colors are stored as integers, where 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue, -1=unknown
         self._colors = self._initialize_cube()
+        
+        self.state_model = state_model
     
     def _initialize_cube(self) -> np.ndarray:
-        # Shape: (6 faces, 3 rows, 3 cols)
+        # Initialize the cube with all unknown colors
         # Use int8 to support -1 for unknown colors
         colors = np.full((6, 3, 3), -1, dtype=np.int8)
         return colors
     
     @property
     def rotation(self) -> Tuple[float, float, float]:
+        # Get the current rotation angles
         return (self._rotation_x, self._rotation_y, self._rotation_z)
     
     def set_rotation(self, x: float = None, y: float = None, z: float = None):
@@ -48,18 +52,38 @@ class CubeModel(QObject):
         if changed:
             self.rotation_changed.emit(self._rotation_x, self._rotation_y, self._rotation_z)
     
-    def rotate(self, delta_x: float = 0, delta_y: float = 0, delta_z: float = 0):
-        self.set_rotation(
-            self._rotation_x + delta_x,
-            self._rotation_y + delta_y,
-            self._rotation_z + delta_z
-        )
-    
+    # Get the current cube colors
     @property
     def colors(self) -> np.ndarray:
         return self._colors
-    
-    def set_colors(self, colors: np.ndarray):
+
+    # Set the cube colors
+    @colors.setter
+    def colors(self, colors: np.ndarray):
         self._colors = colors
         self.cube_state_changed.emit()
+        
+        # Check if cube is completed (no unknown tiles)
+        if np.all(self._colors != -1) and (self.state_model.state == AppState.DETECTING):
+            self.state_model.state = AppState.DETECTED
+        
+        # Check if cube is solved (all faces have uniform colors)
+        if self._is_solved() and self.state_model.state == AppState.RESOLVING:
+            self.state_model.state = AppState.SOLVED
+    
+    def _is_solved(self) -> bool:
+        # Check if there are any unknown tiles
+        if np.any(self._colors == -1):
+            return False
+        
+        # Check if each face has uniform color
+        for face_idx in range(6):
+            face = self._colors[face_idx]
+            # Get the color of the center tile
+            center_color = face[1, 1]
+            # Check if all tiles on this face have the same color
+            if not np.all(face == center_color):
+                return False
+        
+        return True
 

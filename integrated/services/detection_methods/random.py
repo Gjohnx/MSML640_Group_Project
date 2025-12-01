@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Optional
 from .base import DetectionMethod
 
 
@@ -8,7 +8,7 @@ class RandomDetectionMethod(DetectionMethod):
     def __init__(self):
         self.cube_colors = np.full((6, 3, 3), -1, dtype=np.int8)
     
-    def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray, Optional[Tuple[float, float, float]]]:
         # Find all unknown tiles (where value is -1)
         unknown_indices = np.where(self.cube_colors == -1)
         
@@ -22,5 +22,5 @@ class RandomDetectionMethod(DetectionMethod):
             # Assign a random color (0-5)
             self.cube_colors[face, row, col] = np.random.randint(0, 6)
         
-        return frame, self.cube_colors.copy()
+        return frame, self.cube_colors.copy(), None
 

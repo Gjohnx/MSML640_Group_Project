@@ -5,25 +5,30 @@ from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from OpenGL import GL
 import numpy as np
 import math
+from typing import Tuple
 
 
 class CubeView(QWidget):
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._cube_model = None
         self._init_ui()
-        # Start with a slight rotation of 15 degrees on both x and y axes
-        self._rotation_x = 15.0
-        self._rotation_y = 15.0
-        self._rotation_z = 0.0
-        
-        # Disable auto-rotation - user will control via mouse drag
-        self._auto_rotate = False
+
+    @property
+    def rotation(self) -> Tuple[float, float, float]:
+        return self.gl_widget.rotation
     
-    def set_cube_model(self, cube_model):
-        self._cube_model = cube_model
-        self.gl_widget.set_cube_model(cube_model)
+    @rotation.setter
+    def rotation(self, value: Tuple[float, float, float]):
+        self.gl_widget.rotation = value
+
+    @property
+    def colors(self) -> np.ndarray:
+        return self.gl_widget.colors
+    
+    @colors.setter
+    def colors(self, colors: np.ndarray):
+        self.gl_widget.colors = colors
     
     def _init_ui(self):
         layout = QVBoxLayout()
@@ -49,27 +54,17 @@ class CubeView(QWidget):
         
         self.setLayout(layout)
     
-    def set_rotation(self, x: float, y: float, z: float):
-        self._rotation_x = x
-        self._rotation_y = y
-        self._rotation_z = z
-        self.gl_widget.set_rotation(x, y, z)
-    
+    # Function to calculate the rotation angle based on the mouse drag
     def rotate_by_delta(self, delta_x: float, delta_y: float):
-        """Rotate cube by delta angles (called from mouse drag)."""
-        self._rotation_y += delta_x
-        self._rotation_x += delta_y
-        
+        x, y, z = self.gl_widget.rotation
+        x += delta_y
+        y += delta_x
         # Keep angles in reasonable range
-        self._rotation_x = max(-90, min(90, self._rotation_x))
-        
-        self.gl_widget.set_rotation(self._rotation_x, self._rotation_y, self._rotation_z)
-    
-    def stop_animation(self):
-        """Stop animation (kept for compatibility, but auto-rotation is disabled)."""
-        pass
+        x = max(-90, min(90, x))
+        y = max(-90, min(90, y))
+        self.gl_widget.rotation = (x, y, z)
 
-
+# This is the class that really manages the OpenGL rendering of the cube
 class RubiksCubeGLWidget(QOpenGLWidget):
     
     # Color palette for Rubik's cube faces
@@ -88,16 +83,31 @@ class RubiksCubeGLWidget(QOpenGLWidget):
     def __init__(self, cube_view: CubeView, parent=None):
         super().__init__(parent)
         self._cube_view = cube_view
-        self._cube_model = None
+        self._colors = None
         self._rotation_x = 0.0
         self._rotation_y = 0.0
         self._rotation_z = 0.0
         self._last_mouse_pos = None
         self._is_dragging = False
     
-    def set_cube_model(self, cube_model):
-        self._cube_model = cube_model
+    @property
+    def colors(self) -> np.ndarray:
+        return self._colors
     
+    @colors.setter
+    def colors(self, colors: np.ndarray):
+        self._colors = colors
+        self.update()
+
+    @property
+    def rotation(self) -> Tuple[float, float, float]:
+        return (self._rotation_x, self._rotation_y, self._rotation_z)
+    
+    @rotation.setter
+    def rotation(self, value: Tuple[float, float, float]):
+        self._rotation_x, self._rotation_y, self._rotation_z = value
+        self.update()
+
     def initializeGL(self):
         GL.glEnable(GL.GL_DEPTH_TEST)
         GL.glClearColor(0.1, 0.1, 0.1, 1.0)
@@ -209,12 +219,11 @@ class RubiksCubeGLWidget(QOpenGLWidget):
             if face_key not in face_tiles:
                 return (0.2, 0.2, 0.2)  # Dark gray for inner faces
             
-            if self._cube_model is None:
-                return (0.2, 0.2, 0.2)  # Dark gray if no model
+            if self._colors is None:
+                return (0.2, 0.2, 0.2)  # Dark gray if no colors set
             
             face_idx, row, col = face_tiles[face_key]
-            colors = self._cube_model.colors
-            color_idx = colors[face_idx, row, col]
+            color_idx = self._colors[face_idx, row, col]
             
             if color_idx == -1:
                 return self.UNKNOWN_COLOR  # Grey for unknown
@@ -280,12 +289,6 @@ class RubiksCubeGLWidget(QOpenGLWidget):
             GL.glVertex3f(x + size, y - size, z - size)
             GL.glVertex3f(x + size, y - size, z + size)
             GL.glVertex3f(x - size, y - size, z + size)
-    
-    def set_rotation(self, x: float, y: float, z: float):
-        self._rotation_x = x
-        self._rotation_y = y
-        self._rotation_z = z
-        self.update()
     
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:

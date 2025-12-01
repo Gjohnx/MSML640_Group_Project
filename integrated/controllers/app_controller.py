@@ -1,30 +1,34 @@
 from models.webcam_model import WebcamModel
 from models.configuration_model import ConfigurationModel
 from models.cube_model import CubeModel
+from models.state_model import StateModel
 from views.main_window import MainWindow
 from controllers.webcam_controller import WebcamController
 from controllers.processing_controller import ProcessingController
 from controllers.cube_controller import CubeController
 from controllers.controls_controller import ControlsController
 from services.detection_service import DetectionService
+from services.resolution_service import ResolutionService
 
 
 class AppController:
     
     def __init__(self):
         
-        # Get all detection methods from service layer
+        # Get all detection and resolution methods from service layer
         detection_methods = DetectionService.get_all_detection_methods()
+        resolution_methods = ResolutionService.get_all_resolution_methods()
         
-        # Create models
+        # Step 1: Create all Views first
+        self.main_window = MainWindow()
+        
+        # Step 2: Create all Models
+        self.configuration_model = ConfigurationModel(detection_methods, resolution_methods)
         self.webcam_model = WebcamModel()
-        self.configuration_model = ConfigurationModel(detection_methods)
-        self.cube_model = CubeModel()
+        self.state_model = StateModel()
+        self.cube_model = CubeModel(self.state_model)
         
-        # Create main window (pass configuration model so views can access it)
-        self.main_window = MainWindow(self.configuration_model)
-        
-        # Create controllers
+        # Step 3: Create all Controllers (they will connect signals)
         self.webcam_controller = WebcamController(
             self.webcam_model,
             self.main_window.get_webcam_view()
@@ -34,7 +38,9 @@ class AppController:
             self.webcam_model,
             self.configuration_model,
             self.main_window.get_processed_view(),
-            self.cube_model
+            self.cube_model,
+            self.state_model,
+            self.main_window.get_controls_view()
         )
         
         self.cube_controller = CubeController(
@@ -44,7 +50,9 @@ class AppController:
         
         self.controls_controller = ControlsController(
             self.configuration_model,
-            self.main_window.get_controls_view()
+            self.main_window.get_controls_view(),
+            self.cube_model,
+            self.state_model
         )
     
     def start(self):
@@ -57,8 +65,4 @@ class AppController:
     def stop(self):
         # Stop webcam capture
         self.webcam_controller.stop_capture()
-        
-        # Stop cube animation
-        cube_view = self.main_window.get_cube_view()
-        cube_view.stop_animation()
 

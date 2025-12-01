@@ -25,15 +25,15 @@ class ColorGridDetectionMethod(DetectionMethod):
     # Map color labels to numeric indices: 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue
     LABEL_TO_INDEX = {"W": 0, "Y": 1, "R": 2, "O": 3, "G": 4, "B": 5}
     
-    def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray, Optional[Tuple[float, float, float]]]:
         cube_colors = np.full((6, 3, 3), -1, dtype=np.int8)
         
         if frame is None or frame.size == 0:
-            return frame.copy() if frame is not None else np.zeros((100, 100, 3), dtype=np.uint8), cube_colors
+            return frame.copy() if frame is not None else np.zeros((100, 100, 3), dtype=np.uint8), cube_colors, None
         
         quad = self._find_largest_square_quad(frame)
         if quad is None:
-            return frame.copy(), cube_colors
+            return frame.copy(), cube_colors, None
         
         warped = self._warp_perspective(frame, quad, self.WARP_SIZE)
         hsv = cv2.cvtColor(warped, cv2.COLOR_BGR2HSV)
@@ -46,7 +46,7 @@ class ColorGridDetectionMethod(DetectionMethod):
         # Create overlay with grid and labels
         processed_frame = self._create_grid_overlay(warped, hsv)
         
-        return processed_frame, cube_colors
+        return processed_frame, cube_colors, None
     
     def _find_largest_square_quad(self, bgr: np.ndarray) -> Optional[np.ndarray]:
         img = bgr.copy()

@@ -1,4 +1,3 @@
-"""View widget for displaying raw webcam feed."""
 from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
@@ -6,15 +5,15 @@ import cv2
 import numpy as np
 
 
+# The Webcam view is the widget that displays the raw webcam feed
 class WebcamView(QWidget):
-    """Widget that displays the raw webcam feed."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self._init_ui()
     
     def _init_ui(self):
-        """Initialize the UI components."""
+        # Initialize the UI components
         layout = QVBoxLayout()
         layout.setContentsMargins(5, 5, 5, 5)
         
@@ -36,11 +35,11 @@ class WebcamView(QWidget):
         self.setLayout(layout)
     
     def display_frame(self, frame: np.ndarray):
-        """Display a frame from the webcam."""
+        # Display a frame from the webcam
         if frame is None or frame.size == 0:
             return
         
-        # Convert BGR to RGB
+        # The frame sent by the controller is in BGR format
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_frame.shape
         bytes_per_line = ch * w
