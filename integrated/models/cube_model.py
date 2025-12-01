@@ -68,8 +68,8 @@ class CubeModel(QObject):
             self.state_model.state = AppState.DETECTED
         
         # Check if cube is solved (all faces have uniform colors)
-        if self._is_solved() and self.state_model.state == AppState.RESOLVING:
-            self.state_model.state = AppState.SOLVED
+        # if self._is_solved() and self.state_model.state == AppState.RESOLVING:
+        #     self.state_model.state = AppState.SOLVED
     
     def _is_solved(self) -> bool:
         # Check if there are any unknown tiles

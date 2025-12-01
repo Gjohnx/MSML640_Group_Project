@@ -1,5 +1,5 @@
 from typing import Dict
-from .detection_methods import DetectionMethod, VoidDetectionMethod, RandomDetectionMethod, ColorGridDetectionMethod
+from .detection_methods import DetectionMethod, VoidDetectionMethod, ColorGridDetectionMethod, HardcodedDetectionMethod
 
 
 class DetectionService:
@@ -7,7 +7,7 @@ class DetectionService:
     @staticmethod
     def get_all_detection_methods() -> Dict[str, DetectionMethod]:
         return {
-            "Random": RandomDetectionMethod(),
-            "Color Grid": ColorGridDetectionMethod(),
+            "Hardcoded": HardcodedDetectionMethod(),
             "Void": VoidDetectionMethod(),
+            "Color Grid": ColorGridDetectionMethod(),
         }

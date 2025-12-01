@@ -60,8 +60,8 @@ class CubeView(QWidget):
         x += delta_y
         y += delta_x
         # Keep angles in reasonable range
-        x = max(-90, min(90, x))
-        y = max(-90, min(90, y))
+        x = max(-180, min(180, x))
+        y = max(-180, min(180, y))
         self.gl_widget.rotation = (x, y, z)
 
 # This is the class that really manages the OpenGL rendering of the cube
@@ -172,7 +172,7 @@ class RubiksCubeGLWidget(QOpenGLWidget):
     def _draw_cubelet(self, x: float, y: float, z: float, size: float, 
                      grid_x: int, grid_y: int, grid_z: int):
         # Map grid positions to face indices and tile positions
-        # Face indices: 0=top, 1=bottom, 2=right, 3=left, 4=front, 5=back
+        # Face indices: 0=top(U/white), 1=bottom(D/yellow), 2=front(F/red), 3=back(B/orange), 4=right(R/green), 5=left(L/blue)
         face_tiles = {}
         
         # Top face (y = 2): face 0
@@ -187,29 +187,29 @@ class RubiksCubeGLWidget(QOpenGLWidget):
             col = grid_x
             face_tiles['bottom'] = (1, row, col)
         
-        # Right face (x = 2): face 2
+        # Right face (x = 2): face 4
         if grid_x == 2:
             row = 2 - grid_y
             col = 2 - grid_z
-            face_tiles['right'] = (2, row, col)
+            face_tiles['right'] = (4, row, col)
         
-        # Left face (x = 0): face 3
+        # Left face (x = 0): face 5
         if grid_x == 0:
             row = 2 - grid_y
             col = grid_z
-            face_tiles['left'] = (3, row, col)
+            face_tiles['left'] = (5, row, col)
         
-        # Front face (z = 2): face 4
+        # Front face (z = 2): face 2
         if grid_z == 2:
             row = 2 - grid_y
             col = 2 - grid_x
-            face_tiles['front'] = (4, row, col)
+            face_tiles['front'] = (2, row, col)
         
-        # Back face (z = 0): face 5
+        # Back face (z = 0): face 3
         if grid_z == 0:
             row = 2 - grid_y
             col = grid_x
-            face_tiles['back'] = (5, row, col)
+            face_tiles['back'] = (3, row, col)
         
         # Draw all 6 faces
         GL.glBegin(GL.GL_QUADS)

@@ -7,6 +7,6 @@ class ResolutionService:
     @staticmethod
     def get_all_resolution_methods() -> Dict[str, ResolutionMethod]:
         return {
-            "Random": RandomResolutionMethod(),
+            "Random": RandomResolutionMethod()
         }
 

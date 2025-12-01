@@ -1,7 +1,7 @@
 from .base import DetectionMethod
 from .void import VoidDetectionMethod
-from .random import RandomDetectionMethod
 from .color_grid import ColorGridDetectionMethod
+from .hardcoded import HardcodedDetectionMethod
 
-__all__ = ['DetectionMethod', 'VoidDetectionMethod', 'RandomDetectionMethod', 'BlobDetectionMethod', 'ColorGridDetectionMethod']
+__all__ = ['DetectionMethod', 'VoidDetectionMethod', 'ColorGridDetectionMethod', 'HardcodedDetectionMethod']
 
