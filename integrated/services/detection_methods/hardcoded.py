@@ -7,7 +7,7 @@ class HardcodedDetectionMethod(DetectionMethod):
     
     def __init__(self):
         # Hardcoded cube matrix (6 faces, 3 rows, 3 columns)
-        # Colors: 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue
+        # Colors: 0=white, 1=yellow, 2=red, 3=orange, 4=blue, 5=green
         self.hardcoded_cube = np.array([
             # Face 0 (White/Up)
             [[0, 0, 0],
@@ -25,11 +25,11 @@ class HardcodedDetectionMethod(DetectionMethod):
             [[3, 3, 3],
              [3, 3, 3],
              [3, 3, 3]],
-            # Face 4 (Green/Right)
+            # Face 4 (Blue/Right)
             [[4, 4, 4],
              [4, 4, 4],
              [4, 4, 4]],
-            # Face 5 (Blue/Left)
+            # Face 5 (Green/Left)
             [[5, 5, 5],
              [5, 5, 5],
              [5, 5, 5]]

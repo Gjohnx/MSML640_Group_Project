@@ -73,8 +73,8 @@ class RubiksCubeGLWidget(QOpenGLWidget):
         (1.0, 1.0, 0.0),  # Yellow (1)
         (1.0, 0.0, 0.0),  # Red (2)
         (1.0, 0.5, 0.0),  # Orange (3)
-        (0.0, 1.0, 0.0),  # Green (4)
-        (0.0, 0.0, 1.0),  # Blue (5)
+        (0.0, 0.0, 1.0),  # Blue (4)
+        (0.0, 1.0, 0.0),  # Green (5)
     ]
     
     # Grey color for unknown tiles (-1)
