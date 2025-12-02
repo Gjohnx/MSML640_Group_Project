@@ -63,7 +63,6 @@ class RandomDetectionMethod(DetectionMethod):
     
     def _scramble_cube(self):
         scramble_sequence = []
-        
         for _ in range(self.num_scramble_moves):
             move = random.choice(self.MOVES)
             scramble_sequence.append(move)

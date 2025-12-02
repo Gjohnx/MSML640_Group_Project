@@ -110,3 +110,9 @@ Emitted by the CubeModel when the cube state changes. Received by the CubeContro
 **algorithm_selected**
 
 Emitted by the ControlsView when a new algorithm has been selected. Received by the ControlsController to update the selected algorithm in the ConfigurationModel.
+
+# References
+
+https://rubiks.fandom.com/wiki/Notation
+https://medium.com/@brad.hodkinson2/writing-code-to-solve-a-rubiks-cube-7bf9c08de01f
+https://www.sfu.ca/~jtmulhol/math302/puzzles-rc.html

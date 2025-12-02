@@ -122,17 +122,18 @@ class CubeRotations:
         temp_U = cube[0, 2, :].copy()
         temp_R = cube[1, :, 0].copy()
         temp_D = cube[3, 0, :].copy()
+        # Store a copy of the rightmost column of the left face for later use in the rotation
         temp_L = cube[4, :, 2].copy()
         
         if is_prime:
             cube[4, :, 2] = temp_U[::-1]
-            cube[3, 0, :] = temp_L[::-1]
+            cube[3, 0, :] = temp_L
             cube[1, :, 0] = temp_D[::-1]
             cube[0, 2, :] = temp_R
         else:
             cube[1, :, 0] = temp_U
             cube[3, 0, :] = temp_R[::-1]
-            cube[4, :, 2] = temp_D[::-1]
+            cube[4, :, 2] = temp_D
             cube[0, 2, :] = temp_L[::-1]
         return cube
     
