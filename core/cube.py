@@ -284,8 +284,21 @@ class Cube:
         return True
 
     def validate(self):
-        # Check color counts, solvability constraints (parity, orientation)
-        pass
+        counts = {}
+        # Flatten the state to count colors
+        for face in self.state:
+            for row in face:
+                for color in row:
+                    counts[color] = counts.get(color, 0) + 1
+        
+        # Standard colors
+        valid_colors = ['W', 'G', 'R', 'O', 'Y', 'B']
+        for c in valid_colors:
+            if counts.get(c, 0) != 9:
+                # You might want to raise an error or return False
+                print(f"Validation Error: Expected 9 '{c}' stickers, found {counts.get(c, 0)}")
+                return False
+        return True
 
     def generate_random_scramble(self, length: int = 20, seed: int | None = None) -> str:
         """
