@@ -9,3 +9,6 @@ class ResolutionMethod(ABC):
     def solve(self, cube_colors: np.ndarray) -> Optional[str]:
         pass
 
+    @abstractmethod
+    def undo(self):
+        pass

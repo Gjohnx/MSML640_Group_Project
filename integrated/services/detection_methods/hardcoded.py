@@ -7,40 +7,40 @@ class HardcodedDetectionMethod(DetectionMethod):
     
     def __init__(self):
         # Hardcoded cube matrix (6 faces, 3 rows, 3 columns)
-        # Colors: 0=white, 1=yellow, 2=red, 3=orange, 4=blue, 5=green
+        # Colors: U=white, R=blue, F=red, D=yellow, L=green, B=orange
         self.hardcoded_cube = np.array([
             # Face 0 (White/Up)
-            [[0, 0, 0],
-             [0, 0, 0],
-             [0, 0, 0]],
-            # Face 1 (Yellow/Down)
-            [[1, 1, 1],
-             [1, 1, 1],
-             [1, 1, 1]],
+            [['U', 'U', 'U'],
+             ['U', 'U', 'U'],
+             ['L', 'L', 'L']],
+            # Face 1 (Blue/Right)
+            [['U', 'R', 'R'],
+             ['U', 'R', 'R'],
+             ['U', 'R', 'R']],
             # Face 2 (Red/Front)
-            [[2, 2, 2],
-             [2, 2, 2],
-             [2, 2, 2]],
-            # Face 3 (Orange/Back)
-            [[3, 3, 3],
-             [3, 3, 3],
-             [3, 3, 3]],
-            # Face 4 (Blue/Right)
-            [[4, 4, 4],
-             [4, 4, 4],
-             [4, 4, 4]],
-            # Face 5 (Green/Left)
-            [[5, 5, 5],
-             [5, 5, 5],
-             [5, 5, 5]]
-        ], dtype=np.int8)
+            [['F', 'F', 'F'],
+             ['F', 'F', 'F'],
+             ['F', 'F', 'F']],
+            # Face 3 (Yellow/Down)
+            [['R', 'R', 'R'],
+             ['D', 'D', 'D'],
+             ['D', 'D', 'D']],
+            # Face 4 (Green/Left)
+            [['L', 'L', 'D'],
+             ['L', 'L', 'D'],
+             ['L', 'L', 'D']],
+            # Face 5 (Orange/Back)
+            [['B', 'B', 'B'],
+             ['B', 'B', 'B'],
+             ['B', 'B', 'B']]
+        ], dtype=str)
         
         # Initialize with all unknown tiles (will be discovered by process)
-        self.cube_colors = np.full((6, 3, 3), -1, dtype=np.int8)
+        self.cube_colors = np.full((6, 3, 3), '?', dtype=str)
     
     def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray, Optional[Tuple[float, float, float]]]:
         # Find all unknown tiles (where value is -1)
-        unknown_indices = np.where(self.cube_colors == -1)
+        unknown_indices = np.where(self.cube_colors == '?')
         
         if len(unknown_indices[0]) > 0:
             # Pick the first unknown tile (discover in order: face, row, col)

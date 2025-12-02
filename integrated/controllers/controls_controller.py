@@ -36,8 +36,10 @@ class ControlsController:
             self.view.disable_resolution_method()
             self.view.disable_start_resolution()
             self.view.enable_next_step()
+            self.view.enable_prev_step()
         elif state == AppState.SOLVED:
             self.view.disable_next_step()
+            self.view.disable_prev_step()
 
     def _on_start_detection_clicked(self, detection_method: str):
         self.configuration_model.current_detection_method = detection_method

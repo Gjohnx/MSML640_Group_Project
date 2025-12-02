@@ -1,5 +1,6 @@
 from .base import ResolutionMethod
-from .random import RandomResolutionMethod
+from .dummy import DummyResolutionMethod
+from .kociemba import KociembaResolutionMethod
 
-__all__ = ['ResolutionMethod', 'RandomResolutionMethod']
+__all__ = ['ResolutionMethod', 'DummyResolutionMethod', 'KociembaResolutionMethod']
 

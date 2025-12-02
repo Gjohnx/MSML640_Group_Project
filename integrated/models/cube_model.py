@@ -21,15 +21,15 @@ class CubeModel(QObject):
         self._rotation_z = 0.0
         
         # The cube is stored as a Numpy array with the following dimensions (6 faces, 3 rows, 3 columns)
-        # The colors are stored as integers, where 0=white, 1=yellow, 2=red, 3=orange, 4=green, 5=blue, -1=unknown
+        # The colors are stored as strings, where 'U'=white, 'D'=yellow, 'F'=red, 'B'=orange, 'R'=blue, 'L'=green, '?'=unknown
         self._colors = self._initialize_cube()
         
         self.state_model = state_model
     
     def _initialize_cube(self) -> np.ndarray:
         # Initialize the cube with all unknown colors
-        # Use int8 to support -1 for unknown colors
-        colors = np.full((6, 3, 3), -1, dtype=np.int8)
+        # Use string '?' for unknown colors
+        colors = np.full((6, 3, 3), '?', dtype=str)
         return colors
     
     @property
@@ -64,7 +64,7 @@ class CubeModel(QObject):
         self.cube_state_changed.emit()
         
         # Check if cube is completed (no unknown tiles)
-        if np.all(self._colors != -1) and (self.state_model.state == AppState.DETECTING):
+        if np.all(self._colors != '?') and (self.state_model.state == AppState.DETECTING):
             self.state_model.state = AppState.DETECTED
         
         # Check if cube is solved (all faces have uniform colors)
@@ -73,7 +73,7 @@ class CubeModel(QObject):
     
     def _is_solved(self) -> bool:
         # Check if there are any unknown tiles
-        if np.any(self._colors == -1):
+        if np.any(self._colors == '?'):
             return False
         
         # Check if each face has uniform color

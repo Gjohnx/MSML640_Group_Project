@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QComboBox, 
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, 
     QGroupBox, QPushButton
 )
 from PySide6.QtCore import Qt, Signal
@@ -10,6 +10,7 @@ class ControlsView(QWidget):
     start_detection_clicked = Signal(str)
     start_resolution_clicked = Signal(str)
     next_step_clicked = Signal()
+    prev_step_clicked = Signal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -63,11 +64,20 @@ class ControlsView(QWidget):
         self.start_resolution_button.clicked.connect(self._on_start_resolution_clicked)
         layout.addWidget(self.start_resolution_button)
         
-        # Next Step button
+        # Prev Step and Next Step buttons in a horizontal layout
+        step_buttons_layout = QHBoxLayout()
+        
+        self.prev_step_button = QPushButton("Prev Step")
+        self.prev_step_button.setEnabled(False)
+        self.prev_step_button.clicked.connect(self._on_prev_step_clicked)
+        step_buttons_layout.addWidget(self.prev_step_button)
+        
         self.next_step_button = QPushButton("Next Step")
         self.next_step_button.setEnabled(False)
         self.next_step_button.clicked.connect(self._on_next_step_clicked)
-        layout.addWidget(self.next_step_button)
+        step_buttons_layout.addWidget(self.next_step_button)
+        
+        layout.addLayout(step_buttons_layout)
         
         # Spacer
         layout.addStretch()
@@ -102,6 +112,9 @@ class ControlsView(QWidget):
         self.start_resolution_clicked.emit(selected_method)
     
     
+    def _on_prev_step_clicked(self):
+        self.prev_step_clicked.emit()
+    
     def _on_next_step_clicked(self):
         self.next_step_clicked.emit()
 
@@ -128,6 +141,12 @@ class ControlsView(QWidget):
     
     def disable_start_resolution(self):
         self.start_resolution_button.setEnabled(False)
+    
+    def enable_prev_step(self):
+        self.prev_step_button.setEnabled(True)
+    
+    def disable_prev_step(self):
+        self.prev_step_button.setEnabled(False)
     
     def enable_next_step(self):
         self.next_step_button.setEnabled(True)

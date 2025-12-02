@@ -1,5 +1,5 @@
 from typing import Dict
-from .resolution_methods import ResolutionMethod, RandomResolutionMethod
+from .resolution_methods import ResolutionMethod, DummyResolutionMethod, KociembaResolutionMethod
 
 
 class ResolutionService:
@@ -7,6 +7,7 @@ class ResolutionService:
     @staticmethod
     def get_all_resolution_methods() -> Dict[str, ResolutionMethod]:
         return {
-            "Random": RandomResolutionMethod()
+            "Kociemba": KociembaResolutionMethod(),
+            "Dummy": DummyResolutionMethod()
         }
 

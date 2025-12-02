@@ -67,17 +67,18 @@ class CubeView(QWidget):
 # This is the class that really manages the OpenGL rendering of the cube
 class RubiksCubeGLWidget(QOpenGLWidget):
     
-    # Color palette for Rubik's cube faces
-    COLORS = [
-        (1.0, 1.0, 1.0),  # White (0)
-        (1.0, 1.0, 0.0),  # Yellow (1)
-        (1.0, 0.0, 0.0),  # Red (2)
-        (1.0, 0.5, 0.0),  # Orange (3)
-        (0.0, 0.0, 1.0),  # Blue (4)
-        (0.0, 1.0, 0.0),  # Green (5)
-    ]
+    # Color palette for Rubik's cube faces - maps character codes directly to RGB values
+    # Based on hardcoded.py convention: U=white, R=blue, F=red, D=yellow, L=green, B=orange
+    COLORS = {
+        'U': (1.0, 1.0, 1.0),  # White
+        'D': (1.0, 1.0, 0.0),  # Yellow
+        'F': (1.0, 0.0, 0.0),  # Red
+        'B': (1.0, 0.5, 0.0),  # Orange
+        'R': (0.0, 0.0, 1.0),  # Blue
+        'L': (0.0, 1.0, 0.0),  # Green
+    }
     
-    # Grey color for unknown tiles (-1)
+    # Grey color for unknown tiles
     UNKNOWN_COLOR = (0.5, 0.5, 0.5)  # Grey
     
     def __init__(self, cube_view: CubeView, parent=None):
@@ -96,7 +97,12 @@ class RubiksCubeGLWidget(QOpenGLWidget):
     
     @colors.setter
     def colors(self, colors: np.ndarray):
-        self._colors = colors
+        # Store colors as-is (can be strings or integers)
+        # We'll handle conversion when rendering
+        if colors is not None:
+            self._colors = colors.copy()
+        else:
+            self._colors = colors
         self.update()
 
     @property
@@ -172,44 +178,54 @@ class RubiksCubeGLWidget(QOpenGLWidget):
     def _draw_cubelet(self, x: float, y: float, z: float, size: float, 
                      grid_x: int, grid_y: int, grid_z: int):
         # Map grid positions to face indices and tile positions
-        # Face indices: 0=top(U/white), 1=bottom(D/yellow), 2=front(F/red), 3=back(B/orange), 4=right(R/green), 5=left(L/blue)
+        # Using hardcoded.py convention: [U, R, F, D, L, B] (faces 0-5)
+        # Face 0: U (White/Up), Face 1: R (Blue/Right), Face 2: F (Red/Front)
+        # Face 3: D (Yellow/Down), Face 4: L (Green/Left), Face 5: B (Orange/Back)
         face_tiles = {}
         
-        # Top face (y = 2): face 0
+        # Top face (y = 2): face 0 (U)
+        # Looking down from above: back (grid_z=0) is top row (row=0), front (grid_z=2) is bottom row (row=2)
+        # Left (grid_x=0) is left column (col=0), right (grid_x=2) is right column (col=2)
         if grid_y == 2:
-            row = 2 - grid_z  # 0 is front, 2 is back
-            col = grid_x
+            row = grid_z  # back=0 -> row 0, front=2 -> row 2
+            col = grid_x  # left=0 -> col 0, right=2 -> col 2
             face_tiles['top'] = (0, row, col)
         
-        # Bottom face (y = 0): face 1
-        if grid_y == 0:
-            row = grid_z
-            col = grid_x
-            face_tiles['bottom'] = (1, row, col)
-        
-        # Right face (x = 2): face 4
+        # Right face (x = 2): face 1 (R)
         if grid_x == 2:
             row = 2 - grid_y
             col = 2 - grid_z
-            face_tiles['right'] = (4, row, col)
+            face_tiles['right'] = (1, row, col)
         
-        # Left face (x = 0): face 5
+        # Front face (z = 2): face 2 (F)
+        # Looking at front: top (grid_y=2) is top row (row=0), bottom (grid_y=0) is bottom row (row=2)
+        # Left (grid_x=0) is left column (col=0), right (grid_x=2) is right column (col=2)
+        if grid_z == 2:
+            row = 2 - grid_y  # top=2 -> row 0, bottom=0 -> row 2
+            col = grid_x  # left=0 -> col 0, right=2 -> col 2
+            face_tiles['front'] = (2, row, col)
+        
+        # Bottom face (y = 0): face 3 (D)
+        # Looking up from below: front (grid_z=2) is top row (row=0), back (grid_z=0) is bottom row (row=2)
+        # Right (grid_x=2) is left column (col=0), left (grid_x=0) is right column (col=2) - mirrored horizontally
+        if grid_y == 0:
+            row = 2 - grid_z  # front=2 -> row 0, back=0 -> row 2
+            col = grid_x  # right=2 -> col 0, left=0 -> col 2
+            face_tiles['bottom'] = (3, row, col)
+        
+        # Left face (x = 0): face 4 (L)
         if grid_x == 0:
             row = 2 - grid_y
             col = grid_z
-            face_tiles['left'] = (5, row, col)
+            face_tiles['left'] = (4, row, col)
         
-        # Front face (z = 2): face 2
-        if grid_z == 2:
-            row = 2 - grid_y
-            col = 2 - grid_x
-            face_tiles['front'] = (2, row, col)
-        
-        # Back face (z = 0): face 3
+        # Back face (z = 0): face 5 (B)
+        # Looking at back: top (grid_y=2) is top row (row=0), bottom (grid_y=0) is bottom row (row=2)
+        # Right (grid_x=2) is left column (col=0), left (grid_x=0) is right column (col=2) - mirrored
         if grid_z == 0:
-            row = 2 - grid_y
-            col = grid_x
-            face_tiles['back'] = (3, row, col)
+            row = 2 - grid_y  # top=2 -> row 0, bottom=0 -> row 2
+            col = 2 - grid_x  # right=2 -> col 0, left=0 -> col 2
+            face_tiles['back'] = (5, row, col)
         
         # Draw all 6 faces
         GL.glBegin(GL.GL_QUADS)
@@ -223,14 +239,33 @@ class RubiksCubeGLWidget(QOpenGLWidget):
                 return (0.2, 0.2, 0.2)  # Dark gray if no colors set
             
             face_idx, row, col = face_tiles[face_key]
-            color_idx = self._colors[face_idx, row, col]
+            color_val = self._colors[face_idx, row, col]
             
-            if color_idx == -1:
-                return self.UNKNOWN_COLOR  # Grey for unknown
-            elif 0 <= color_idx < len(self.COLORS):
-                return self.COLORS[color_idx]
+            # Handle character codes directly (from hardcoded.py: 'U', 'R', 'F', 'D', 'L', 'B', or '?')
+            if isinstance(color_val, (str, bytes)):
+                char_val = str(color_val) if not isinstance(color_val, bytes) else color_val.decode('utf-8')
+                if char_val == '?':
+                    return self.UNKNOWN_COLOR  # Grey for unknown
+                elif char_val in self.COLORS:
+                    return self.COLORS[char_val]
+                else:
+                    return self.UNKNOWN_COLOR  # Grey for invalid character
+            elif isinstance(color_val, np.generic):
+                # Handle numpy scalar (could be integer or string)
+                if color_val.dtype.kind == 'U' or color_val.dtype == object:
+                    char_val = str(color_val)
+                    if char_val == '?':
+                        return self.UNKNOWN_COLOR
+                    elif char_val in self.COLORS:
+                        return self.COLORS[char_val]
+                    else:
+                        return self.UNKNOWN_COLOR
+                else:
+                    # Integer value (legacy support, but shouldn't happen with hardcoded.py)
+                    return self.UNKNOWN_COLOR
             else:
-                return self.UNKNOWN_COLOR  # Grey for invalid color
+                # Fallback for other types
+                return self.UNKNOWN_COLOR
         
         # Front face
         GL.glColor3f(*get_face_color('front'))
