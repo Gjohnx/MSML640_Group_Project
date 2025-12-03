@@ -291,11 +291,10 @@ class Cube:
                 for color in row:
                     counts[color] = counts.get(color, 0) + 1
         
-        # Standard colors
         valid_colors = ['W', 'G', 'R', 'O', 'Y', 'B']
         for c in valid_colors:
             if counts.get(c, 0) != 9:
-                # You might want to raise an error or return False
+                # Debug string.
                 print(f"Validation Error: Expected 9 '{c}' stickers, found {counts.get(c, 0)}")
                 return False
         return True
