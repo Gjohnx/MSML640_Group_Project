@@ -1,5 +1,6 @@
 from typing import Dict
 from .detection_methods import DetectionMethod, VoidDetectionMethod, HardcodedDetectionMethod, RandomDetectionMethod
+from .detection_methods.colorgrid import ColorGridDetectionMethod
 
 
 class DetectionService:
@@ -9,5 +10,7 @@ class DetectionService:
         return {
             "Random": RandomDetectionMethod(num_scramble_moves=20),
             "Hardcoded": HardcodedDetectionMethod(),
+            "HSV (Grid Rectify)": ColorGridDetectionMethod(),
             "Void": VoidDetectionMethod()
+
         }

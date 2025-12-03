@@ -5,7 +5,7 @@ from controllers.app_controller import AppController
 
 def main():
     app = QApplication(sys.argv)
-    
+        
     # Create the application controller
     controller = AppController()
     controller.start()
