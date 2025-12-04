@@ -83,8 +83,9 @@ class WebcamController:
             try:
                 self._thread.frame_ready.disconnect()
                 self._thread.error_occurred.disconnect()
-            except:
-                pass
+            except Exception as e:
+                # Debug 
+                print(f"Warning: Signal disconnection failed: {e}")
             self._thread = None
             # Update view to show webcam stopped
             self.view.video_label.clear()
