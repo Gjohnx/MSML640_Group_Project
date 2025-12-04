@@ -33,11 +33,21 @@ class ProcessingController:
 
     def _on_state_changed(self, state: AppState):
         if state == AppState.DETECTING:
-            # Do something here
-            pass
+            # Do something here 
+            # Reset cube before detecting
+            if self.cube_model:
+                self.cube_model.color = np.full((6,3,3),'?', dtype = str)
+
+            # Clear moves from previouse session 
+            self.last_move = None
+            self.last_cube_colors = None
+            
         elif state == AppState.SOLVED:
             # Do something here
-            pass
+            # Clean up move sequences after solved 
+            self.last_move = None
+            self.last_cube_colors = None
+            print("Resolution complete")
     
     def _process_frame(self, frame: np.ndarray):
 
