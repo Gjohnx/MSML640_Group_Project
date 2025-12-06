@@ -73,3 +73,5 @@ class RandomDetectionMethod(DetectionMethod):
     def _apply_move(self, move: str):
         self.scrambled_cube = CubeRotations.apply_move(self.scrambled_cube, move)
 
+    def reset(self):
+        pass

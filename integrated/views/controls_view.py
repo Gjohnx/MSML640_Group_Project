@@ -8,6 +8,8 @@ from PySide6.QtCore import Qt, Signal
 class ControlsView(QWidget):
 
     start_detection_clicked = Signal(str)
+    reset_clicked = Signal()
+    detect_clicked = Signal()
     start_resolution_clicked = Signal(str)
     next_step_clicked = Signal()
     prev_step_clicked = Signal()
@@ -45,6 +47,21 @@ class ControlsView(QWidget):
         self.start_detection_button.setEnabled(False)
         self.start_detection_button.clicked.connect(self._on_start_detection_clicked)
         layout.addWidget(self.start_detection_button)
+
+        # Reset and Detect buttons in a horizontal layout
+        detection_buttons_layout = QHBoxLayout()
+        
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.setEnabled(False)
+        self.reset_button.clicked.connect(self._on_reset_clicked)
+        detection_buttons_layout.addWidget(self.reset_button)
+        
+        self.detect_button = QPushButton("Detect")
+        self.detect_button.setEnabled(False)
+        self.detect_button.clicked.connect(self._on_detect_clicked)
+        detection_buttons_layout.addWidget(self.detect_button)
+        
+        layout.addLayout(detection_buttons_layout)
         
         # Resolution method selection group
         resolution_method_group = QGroupBox("Select Resolution Method")
@@ -112,6 +129,12 @@ class ControlsView(QWidget):
         self.start_resolution_clicked.emit(selected_method)
     
     
+    def _on_reset_clicked(self):
+        self.reset_clicked.emit()
+    
+    def _on_detect_clicked(self):
+        self.detect_clicked.emit()
+    
     def _on_prev_step_clicked(self):
         self.prev_step_clicked.emit()
     
@@ -129,6 +152,18 @@ class ControlsView(QWidget):
     
     def enable_detection_method(self):
         self.detection_method_combo.setEnabled(True)
+    
+    def enable_reset(self):
+        self.reset_button.setEnabled(True)
+    
+    def disable_reset(self):
+        self.reset_button.setEnabled(False)
+    
+    def enable_detect(self):
+        self.detect_button.setEnabled(True)
+    
+    def disable_detect(self):
+        self.detect_button.setEnabled(False)
     
     def disable_resolution_method(self):
         self.resolution_method_combo.setEnabled(False)

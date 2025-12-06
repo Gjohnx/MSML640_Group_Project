@@ -9,3 +9,5 @@ class VoidDetectionMethod(DetectionMethod):
         cube_colors = np.full((6, 3, 3), '?', dtype=str)
         return frame, cube_colors, None
 
+    def reset(self):
+        pass

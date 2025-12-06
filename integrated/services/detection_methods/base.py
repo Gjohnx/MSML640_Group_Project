@@ -10,3 +10,6 @@ class DetectionMethod(ABC):
         # Process a frame and return processed frame, cube colors, and optional rotation.
         pass
 
+    @abstractmethod
+    def reset(self):
+        pass

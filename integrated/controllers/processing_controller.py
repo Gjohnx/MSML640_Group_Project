@@ -27,6 +27,7 @@ class ProcessingController:
         self.state_model.state_changed.connect(self._on_state_changed)
         self.controls_view.next_step_clicked.connect(self.handle_next_step)
         self.controls_view.prev_step_clicked.connect(self.handle_prev_step)
+        self.controls_view.reset_clicked.connect(self.handle_reset)
 
         self.last_move = None
         self.last_cube_colors = None
@@ -48,6 +49,16 @@ class ProcessingController:
             self.last_move = None
             self.last_cube_colors = None
             print("Resolution complete")
+    
+    def handle_reset(self):
+        if self.cube_model is None:
+            return
+        else:
+            self.cube_model.colors = np.full((6,3,3),'?', dtype = str)
+        
+        detection_method_name = self.configuration_model.current_detection_method
+        detection_method = self.configuration_model.get_detection_method(detection_method_name)
+        detection_method.reset()
     
     def _process_frame(self, frame: np.ndarray):
 

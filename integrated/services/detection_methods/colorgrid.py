@@ -78,3 +78,6 @@ class ColorGridDetectionMethod(DetectionMethod):
                 pass
 
         return processed, cube, None
+    
+    def reset(self):
+        pass

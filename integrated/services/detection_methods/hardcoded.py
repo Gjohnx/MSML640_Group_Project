@@ -37,6 +37,9 @@ class HardcodedDetectionMethod(DetectionMethod):
         
         # Initialize with all unknown tiles (will be discovered by process)
         self.cube_colors = np.full((6, 3, 3), '?', dtype=str)
+
+    def reset(self):
+        self.cube_colors = np.full((6, 3, 3), '?', dtype=str)
     
     def process(self, frame: np.ndarray) -> Tuple[np.ndarray, np.ndarray, Optional[Tuple[float, float, float]]]:
         # Find all unknown tiles (where value is -1)

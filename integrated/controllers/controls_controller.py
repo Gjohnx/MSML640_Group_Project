@@ -20,6 +20,8 @@ class ControlsController:
         # Connect view signals to state model
         self.view.start_detection_clicked.connect(self._on_start_detection_clicked)
         self.view.start_resolution_clicked.connect(self._on_start_resolution_clicked)
+        self.view.reset_clicked.connect(self._on_reset_clicked)
+        self.view.detect_clicked.connect(self._on_detect_clicked)
         # self.view.next_step_clicked.connect(self._on_next_step_clicked)
         
         # Connect model signals to view
@@ -29,9 +31,13 @@ class ControlsController:
         if state == AppState.DETECTING:
             self.view.disable_start_detection()
             self.view.disable_detection_method()
+            self.view.enable_reset()
+            self.view.enable_detect()
         elif state == AppState.DETECTED:
             self.view.enable_start_resolution()
             self.view.enable_resolution_method()
+            self.view.disable_reset()
+            self.view.disable_detect()
         elif state == AppState.RESOLVING:
             self.view.disable_resolution_method()
             self.view.disable_start_resolution()
@@ -40,6 +46,14 @@ class ControlsController:
         elif state == AppState.SOLVED:
             self.view.disable_next_step()
             self.view.disable_prev_step()
+
+    def _on_reset_clicked(self):
+        # self.cube_model.reset()
+        pass
+
+    def _on_detect_clicked(self):
+        # self.state_model.state = AppState.DETECTING
+        pass
 
     def _on_start_detection_clicked(self, detection_method: str):
         self.configuration_model.current_detection_method = detection_method
