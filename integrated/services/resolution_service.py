@@ -8,6 +8,6 @@ class ResolutionService:
     def get_all_resolution_methods() -> Dict[str, ResolutionMethod]:
         return {
             "Kociemba": KociembaResolutionMethod(),
-            "Dummy": DummyResolutionMethod()
+            "Beginner Solver": DummyResolutionMethod()
         }
 
