@@ -22,43 +22,27 @@ class ProcessingController:
         
         # Connect model signals
         self.webcam_model.frame_captured.connect(self._process_frame)
-        
-        # Connect model signals
         self.state_model.state_changed.connect(self._on_state_changed)
         self.controls_view.next_step_clicked.connect(self.handle_next_step)
         self.controls_view.prev_step_clicked.connect(self.handle_prev_step)
-        self.controls_view.reset_clicked.connect(self.handle_reset)
 
         self.last_move = None
         self.last_cube_colors = None
 
     def _on_state_changed(self, state: AppState):
         if state == AppState.DETECTING:
-            # Do something here 
-            # Reset cube before detecting
+            # Reset the Cube Model for a new scan session
             if self.cube_model:
-                self.cube_model.color = np.full((6,3,3),'?', dtype = str)
-
-            # Clear moves from previouse session 
+                self.cube_model.colors = np.full((6, 3, 3), '?', dtype=str)
+            
+            # Clear Undo History
             self.last_move = None
             self.last_cube_colors = None
             
         elif state == AppState.SOLVED:
-            # Do something here
-            # Clean up move sequences after solved 
             self.last_move = None
             self.last_cube_colors = None
-            print("Resolution complete")
-    
-    def handle_reset(self):
-        if self.cube_model is None:
-            return
-        else:
-            self.cube_model.colors = np.full((6,3,3),'?', dtype = str)
-        
-        detection_method_name = self.configuration_model.current_detection_method
-        detection_method = self.configuration_model.get_detection_method(detection_method_name)
-        detection_method.reset()
+            print("Resolution complete: Cube is solved.")
     
     def _process_frame(self, frame: np.ndarray):
 
@@ -68,52 +52,54 @@ class ProcessingController:
         detection_method_name = self.configuration_model.current_detection_method
         detection_method = self.configuration_model.get_detection_method(detection_method_name)
 
-        processed_frame, cube_colors, rotation = detection_method.process(frame)
+        processed_frame, detected_colors, rotation = detection_method.process(frame)
+        
+        # --- MERGE LOGIC START ---
         if self.cube_model is not None:
-            self.cube_model.colors = cube_colors
+            # Get current state from model (to preserve previous scans)
+            current_state = self.cube_model.colors.copy()
+            
+            # Identify which faces in the new detection are valid (not '?')
+            # The detector returns a 6x3x3 array where only the identified face is filled
+            mask = detected_colors != '?'
+            
+            if np.any(mask):
+                # Update only the valid new detections
+                current_state[mask] = detected_colors[mask]
+                self.cube_model.colors = current_state
+            
             # Update rotation if provided by detection method
             if rotation is not None:
                 self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
+        # --- MERGE LOGIC END ---
+        
         self.view.display_frame(processed_frame)
     
-    # Handle the previous step in the resolution
     def handle_prev_step(self):
-        if self.cube_model is None:
-            return
+        if self.cube_model is None: return
         
         resolution_method_name = self.configuration_model.current_resolution_method
-        if not resolution_method_name:
-            return
+        if not resolution_method_name: return
 
         resolution_method = self.configuration_model.get_resolution_method(resolution_method_name)
-        if not resolution_method:
-            print("Resolution method not found!")
-            return
+        if not resolution_method: return
 
-        if self.last_move is None or self.last_cube_colors is None:
-            print("No previous move available!")
-            return
+        if self.last_move is None or self.last_cube_colors is None: return
         
         resolution_method.undo()
         self.cube_model.colors = self.last_cube_colors
         self.last_move = None
         self.last_cube_colors = None
 
-    # Handle the next step in the resolution
     def handle_next_step(self):
-        if self.cube_model is None:
-            return
+        if self.cube_model is None: return
         
         resolution_method_name = self.configuration_model.current_resolution_method
-        if not resolution_method_name:
-            return
+        if not resolution_method_name: return
         
         resolution_method = self.configuration_model.get_resolution_method(resolution_method_name)
-        if not resolution_method:
-            print("Resolution method not found!")
-            return
+        if not resolution_method: return
         
-        # Get the next move from the resolution method
         cube_colors = self.cube_model.colors
         move = resolution_method.solve(cube_colors)
         
@@ -121,60 +107,14 @@ class ProcessingController:
             print("No move available!")
             return
         
-        # Apply the move to the cube
-        # self._print_cube(cube_colors)
         self._apply_move(move)
-        # self._print_cube(self.cube_model.colors)
         self.last_move = move
         self.last_cube_colors = cube_colors.copy()
     
     def _apply_move(self, move: str):
-        if self.cube_model is None:
-            return
+        if self.cube_model is None: return
         
-        # Get current cube state and apply move using shared utility
         cube_colors = self.cube_model.colors.copy()
         cube_colors = CubeRotations.apply_move(cube_colors, move)
-        
-        # Update cube model
         self.cube_model.colors = cube_colors
-        
         print(f"Applied move: {move}")
-    
-    def _print_cube(self, cube: np.ndarray):
-        # Face mapping (hardcoded.py convention): 0=U(white), 1=R(blue), 2=F(red), 3=D(yellow), 4=L(green), 5=B(orange)
-        face_names = {
-            0: "Up (U/White)",
-            1: "Right (R/Blue)",
-            2: "Front (F/Red)",
-            3: "Down (D/Yellow)",
-            4: "Left (L/Green)",
-            5: "Back (B/Orange)"
-        }
-        
-        print("\n" + "="*50)
-        print("CUBE STATE")
-        print("="*50)
-        
-        for face_idx in range(6):
-            face_name = face_names[face_idx]
-            face = cube[face_idx]
-            print(f"\n{face_name} (Face {face_idx}):")
-            for row in range(3):
-                # Handle both character and integer types
-                row_values = []
-                for col in range(3):
-                    val = face[row, col]
-                    if isinstance(val, (str, bytes)) or (hasattr(val, 'dtype') and val.dtype.kind == 'U'):
-                        # Character value
-                        char_val = str(val) if not isinstance(val, bytes) else val.decode('utf-8')
-                        row_values.append(f"{char_val:>2s}")
-                    else:
-                        # Integer value (legacy support)
-                        row_values.append(f"{int(val):2d}")
-                row_str = "  ".join(row_values)
-                print(f"  [{row_str}]")
-        
-        print("="*50 + "\n")
-
-
