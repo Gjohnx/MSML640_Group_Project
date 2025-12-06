@@ -5,6 +5,8 @@ from enum import Enum
 class AppState(Enum):
     """Application states for the Rubik's cube solver."""
     IDLE = "Idle"
+    # The application is in detection mode but it will only process a frame when the detect button is clicked
+    WAITING_FOR_DETECTION = "Waiting for detection"
     DETECTING = "Detecting"
     DETECTED = "Detected"
     RESOLVING = "Resolving"

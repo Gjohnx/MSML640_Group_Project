@@ -39,7 +39,7 @@ class ProcessingController:
             if self.cube_model:
                 self.cube_model.color = np.full((6,3,3),'?', dtype = str)
 
-            # Clear moves from previouse session 
+            # Clear moves from previous session 
             self.last_move = None
             self.last_cube_colors = None
             
@@ -62,19 +62,20 @@ class ProcessingController:
     
     def _process_frame(self, frame: np.ndarray):
 
-        if self.state_model.state != AppState.DETECTING:
-            return
+        if self.state_model.state == AppState.DETECTING:
         
-        detection_method_name = self.configuration_model.current_detection_method
-        detection_method = self.configuration_model.get_detection_method(detection_method_name)
+            detection_method_name = self.configuration_model.current_detection_method
+            detection_method = self.configuration_model.get_detection_method(detection_method_name)
 
-        processed_frame, cube_colors, rotation = detection_method.process(frame)
-        if self.cube_model is not None:
-            self.cube_model.colors = cube_colors
-            # Update rotation if provided by detection method
-            if rotation is not None:
-                self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
-        self.view.display_frame(processed_frame)
+            processed_frame, cube_colors, rotation = detection_method.process(frame)
+            if self.cube_model is not None:
+                self.cube_model.colors = cube_colors
+                # Update rotation if provided by detection method
+                if rotation is not None:
+                    self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
+            self.view.display_frame(processed_frame)
+
+            self.state_model.state = AppState.WAITING_FOR_DETECTION
     
     # Handle the previous step in the resolution
     def handle_prev_step(self):

@@ -28,11 +28,16 @@ class ControlsController:
         self.state_model.state_changed.connect(self._on_state_changed)
     
     def _on_state_changed(self, state: AppState):
-        if state == AppState.DETECTING:
+        if state == AppState.WAITING_FOR_DETECTION:
             self.view.disable_start_detection()
             self.view.disable_detection_method()
             self.view.enable_reset()
             self.view.enable_detect()
+        # if state == AppState.DETECTING:
+        #     self.view.disable_start_detection()
+        #     self.view.disable_detection_method()
+        #     self.view.enable_reset()
+        #     self.view.enable_detect()
         elif state == AppState.DETECTED:
             self.view.enable_start_resolution()
             self.view.enable_resolution_method()
@@ -52,12 +57,11 @@ class ControlsController:
         pass
 
     def _on_detect_clicked(self):
-        # self.state_model.state = AppState.DETECTING
-        pass
+        self.state_model.state = AppState.DETECTING
 
     def _on_start_detection_clicked(self, detection_method: str):
         self.configuration_model.current_detection_method = detection_method
-        self.state_model.state = AppState.DETECTING
+        self.state_model.state = AppState.WAITING_FOR_DETECTION
 
     def _on_start_resolution_clicked(self, resolution_method: str):
         self.configuration_model.current_resolution_method = resolution_method
