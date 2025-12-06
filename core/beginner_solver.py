@@ -594,10 +594,10 @@ class BeginnerSolver:
         BREdge = (topEdgeTop == rmid or topEdgeTop == bmid) and (topEdgeFront == rmid or topEdgeFront == bmid)
         BLEdge = (topEdgeTop == lmid or topEdgeTop == bmid) and (topEdgeFront == lmid or topEdgeFront == bmid)
         FLEdge = (topEdgeTop == fmid or topEdgeTop == lmid) and (topEdgeFront == fmid or topEdgeFront == lmid)
-        if f2lCornerOnTop():
+        if self.f2lCornerOnTop():
             while True:
                 self.solveFrontSlot()
-                if f2lCorrect():
+                if self.f2lCorrect():
                     break
                 self.doMove("U")
         else:
