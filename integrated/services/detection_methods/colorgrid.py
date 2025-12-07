@@ -59,8 +59,6 @@ class ColorGridDetectionMethod(DetectionMethod):
         }
 
         # Map Center Color to Face Index (0=U, 1=R, 2=F, 3=D, 4=L, 5=B)
-        # We use the App Keys here.
-        # If center is Red ('F'), it maps to Face 2.
         self.face_map = {
             'U': 0, # Up
             'R': 1, # Right (Blue)
@@ -74,11 +72,10 @@ class ColorGridDetectionMethod(DetectionMethod):
         if frame is None or frame.size == 0:
             return frame, np.full((6, 3, 3), '?', dtype='<U1'), None
 
-        # 1. Flip frame
-        display_frame = cv2.flip(frame, 1)
+        # 1. NO FLIP (Use original frame)
+        display_frame = frame  # Previously: cv2.flip(frame, 1)
 
         # 2. Convert to HSV
-        # [FIX] Reverted to BGR2HSV because frame is BGR from OpenCV
         hsv = cv2.cvtColor(display_frame, cv2.COLOR_BGR2HSV)
         
         h, w, _ = display_frame.shape
@@ -109,10 +106,6 @@ class ColorGridDetectionMethod(DetectionMethod):
                     
                     dot_color = self.ui_colors.get(color_code, (128,128,128))
                     cv2.circle(display_frame, (x+50, y+50), 8, dot_color, -1)
-                    
-                    # Draw text (optional)
-                    # cv2.putText(display_frame, color_code, (x+5, y+25), 
-                    #             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255,255,255), 1)
 
         # 5. Update Cube State
         cube_state = np.full((6, 3, 3), '?', dtype='<U1')
@@ -128,7 +121,7 @@ class ColorGridDetectionMethod(DetectionMethod):
             label_map = {'U':'Up', 'D':'Down', 'F':'Front (Red)', 'B':'Back (Orange)', 'L':'Left (Green)', 'R':'Right (Blue)'}
             face_name = label_map.get(center_color, center_color)
             
-            cv2.putText(display_frame, f"Updating: {face_name}", (10, 30), 
+            cv2.putText(display_frame, f"Center: {face_name}", (10, 30), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
         else:
             cv2.putText(display_frame, "Align Center Sticker", (10, 30), 
@@ -149,10 +142,6 @@ class ColorGridDetectionMethod(DetectionMethod):
                     return color_code
         
         return '?'
+
     def reset(self):
-        """
-        Resets the internal state of the detection method.
-        """
-        # Add logic here if you need to clear buffers, history, or counters.
-        # If no logic is needed yet, use 'pass'.
         pass

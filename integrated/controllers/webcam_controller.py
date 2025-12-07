@@ -1,4 +1,4 @@
-from PySide6.QtCore import QThread, Signal, QTimer
+from PySide6.QtCore import QThread, Signal
 import cv2
 import numpy as np
 from models.webcam_model import WebcamModel
@@ -16,7 +16,11 @@ class WebcamThread(QThread):
         self._camera = None
     
     def run(self):
+        # 0 is usually the default webcam. You can try 1 or 2 if you have multiple cameras.
         self._camera = cv2.VideoCapture(0)
+        
+        # Optimize camera settings for speed (optional, might not work on all cameras)
+        self._camera.set(cv2.CAP_PROP_FPS, 30)
         
         if not self._camera.isOpened():
             self.error_occurred.emit("Failed to open webcam")
@@ -32,11 +36,11 @@ class WebcamThread(QThread):
                 self.error_occurred.emit("Failed to read frame")
                 break
             
-            # Small delay to control frame rate, but check for stop more frequently
-            for _ in range(33):  # Break into 1ms chunks to be more responsive
-                if not self._running or self.isInterruptionRequested():
-                    break
-                self.msleep(1)
+            # --- REMOVED THE ARTIFICIAL 33ms DELAY LOOP ---
+            # The camera hardware naturally limits the FPS (usually 30 or 60).
+            # We only add a tiny sleep to yield execution and prevent CPU hogging
+            # if the camera read returns instantly (unlikely, but safe).
+            self.msleep(1)
         
         # Cleanup camera
         if self._camera:
@@ -47,13 +51,10 @@ class WebcamThread(QThread):
         self._running = False
         self.requestInterruption()
         
-        # Wait for thread to finish with timeout (should be quick now with 1ms sleeps)
+        # Wait for thread to finish with timeout
         if self.isRunning():
             if not self.wait(2000):  # 2 second timeout
-                # If thread doesn't stop, log but don't force terminate (avoids segfault)
                 print("Warning: Webcam thread did not stop within timeout")
-        
-        # Camera is released in run() method after loop exits
 
 
 class WebcamController:
@@ -69,8 +70,7 @@ class WebcamController:
     def start_capture(self):
         if self._thread is None or not self._thread.isRunning():
             self._thread = WebcamThread()
-            # Connect the frame_ready signal to the update_frame function
-            # This function will update the frame in the model and emit the frame_captured signal
+            # Connect signals
             self._thread.frame_ready.connect(self.model.update_frame)
             self._thread.error_occurred.connect(self._on_error)
             self._thread.start()
@@ -79,19 +79,17 @@ class WebcamController:
         if self._thread:
             if self._thread.isRunning():
                 self._thread.stop()
-            # Disconnect signals to prevent any pending signals from causing issues
+            # Disconnect signals
             try:
                 self._thread.frame_ready.disconnect()
                 self._thread.error_occurred.disconnect()
             except Exception as e:
-                # Debug 
                 print(f"Warning: Signal disconnection failed: {e}")
             self._thread = None
-            # Update view to show webcam stopped
+            # Update view
             self.view.video_label.clear()
             self.view.video_label.setText("Webcam stopped")
     
     def _on_error(self, error_message: str):
         self.view.video_label.clear()
         self.view.video_label.setText(f"Error: {error_message}")
-

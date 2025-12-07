@@ -5,6 +5,7 @@ from enum import Enum
 class AppState(Enum):
     """Application states for the Rubik's cube solver."""
     IDLE = "Idle"
+    WAITING_FOR_DETECTION = "Waiting for detection"
     DETECTING = "Detecting"
     DETECTED = "Detected"
     RESOLVING = "Resolving"

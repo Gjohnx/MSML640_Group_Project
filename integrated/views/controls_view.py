@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, 
-    QGroupBox, QPushButton
+    QGroupBox, QPushButton, QMessageBox
 )
 from PySide6.QtCore import Qt, Signal
 
@@ -10,12 +10,14 @@ class ControlsView(QWidget):
     start_detection_clicked = Signal(str)
     reset_clicked = Signal()
     detect_clicked = Signal()
+    resolve_clicked = Signal()  # New Signal for the Resolve action
     start_resolution_clicked = Signal(str)
     next_step_clicked = Signal()
     prev_step_clicked = Signal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.faces = [] # Initialize faces list to prevent crashes if not set
         self._init_ui()
     
     def _init_ui(self):
@@ -28,9 +30,7 @@ class ControlsView(QWidget):
         title.setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;")
         layout.addWidget(title)
 
-        # All options are disabled by default, they are enabled upon changes in the model
-        
-        # Detection method selection group
+        # --- Detection Method Group ---
         detection_method_group = QGroupBox("Select Detection Method")
         detection_method_layout = QVBoxLayout()
         
@@ -48,22 +48,30 @@ class ControlsView(QWidget):
         self.start_detection_button.clicked.connect(self._on_start_detection_clicked)
         layout.addWidget(self.start_detection_button)
 
-        # Reset and Detect buttons in a horizontal layout
+        # --- Button Row: Reset | Detect | Resolve ---
         detection_buttons_layout = QHBoxLayout()
         
+        # 1. Reset
         self.reset_button = QPushButton("Reset")
         self.reset_button.setEnabled(False)
         self.reset_button.clicked.connect(self._on_reset_clicked)
         detection_buttons_layout.addWidget(self.reset_button)
         
+        # 2. Detect
         self.detect_button = QPushButton("Detect")
         self.detect_button.setEnabled(False)
         self.detect_button.clicked.connect(self._on_detect_clicked)
         detection_buttons_layout.addWidget(self.detect_button)
         
+        # 3. Resolve (The new button)
+        self.resolve_button = QPushButton("Resolve")
+        self.resolve_button.setEnabled(False)
+        self.resolve_button.clicked.connect(self._on_resolve_clicked)
+        detection_buttons_layout.addWidget(self.resolve_button)
+
         layout.addLayout(detection_buttons_layout)
         
-        # Resolution method selection group
+        # --- Resolution Method Group ---
         resolution_method_group = QGroupBox("Select Resolution Method")
         resolution_method_layout = QVBoxLayout()
         
@@ -81,7 +89,7 @@ class ControlsView(QWidget):
         self.start_resolution_button.clicked.connect(self._on_start_resolution_clicked)
         layout.addWidget(self.start_resolution_button)
         
-        # Prev Step and Next Step buttons in a horizontal layout
+        # --- Step Buttons ---
         step_buttons_layout = QHBoxLayout()
         
         self.prev_step_button = QPushButton("Prev Step")
@@ -101,19 +109,18 @@ class ControlsView(QWidget):
         
         self.setLayout(layout)
     
+    # --- Methods ---
+
     def set_detection_methods(self, detection_method_names: list[str]):
         self.detection_method_combo.clear()
         for name in detection_method_names:
             self.detection_method_combo.addItem(name, name)
         self.detection_method_combo.setCurrentIndex(0)
-        # Enable the combo box once it has been populated
         self.enable_detection_method()
         self.enable_start_detection()
     
     def _on_start_detection_clicked(self):
         selected_method = self.detection_method_combo.currentData()
-        
-        # Emit the signal with the selected detection method
         self.start_detection_clicked.emit(selected_method)
     
     def set_resolution_methods(self, resolution_method_names: list[str]):
@@ -124,10 +131,20 @@ class ControlsView(QWidget):
     
     def _on_start_resolution_clicked(self):
         selected_method = self.resolution_method_combo.currentData()
-        
-        # Emit the signal with the selected resolution method
         self.start_resolution_clicked.emit(selected_method)
     
+    def _on_resolve_clicked(self):
+        # Validate that we have exactly 6 faces
+        if len(self.faces) == 6:
+            # Validation passed: Emit signal to Parent to change status
+            self.resolve_clicked.emit()
+        else:
+            # Validation failed: Show warning
+            QMessageBox.warning(
+                self, 
+                "Incomplete Cube", 
+                f"Only {len(self.faces)}/6 faces scanned. Please scan all 6 sides before resolving."
+            )
     
     def _on_reset_clicked(self):
         self.reset_clicked.emit()
@@ -140,6 +157,8 @@ class ControlsView(QWidget):
     
     def _on_next_step_clicked(self):
         self.next_step_clicked.emit()
+
+    # --- Enable/Disable Helpers ---
 
     def enable_start_detection(self):
         self.start_detection_button.setEnabled(True)
@@ -164,6 +183,13 @@ class ControlsView(QWidget):
     
     def disable_detect(self):
         self.detect_button.setEnabled(False)
+
+    # Helper to control the new Resolve button
+    def enable_resolve(self):
+        self.resolve_button.setEnabled(True)
+
+    def disable_resolve(self):
+        self.resolve_button.setEnabled(False)
     
     def disable_resolution_method(self):
         self.resolution_method_combo.setEnabled(False)
@@ -188,4 +214,3 @@ class ControlsView(QWidget):
 
     def disable_next_step(self):
         self.next_step_button.setEnabled(False)
-

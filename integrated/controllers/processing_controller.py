@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 from models.webcam_model import WebcamModel
 from models.configuration_model import ConfigurationModel
 from models.cube_model import CubeModel
@@ -7,7 +8,6 @@ from models.state_model import StateModel
 from models.state_model import AppState
 from views.controls_view import ControlsView
 from services.cube_rotations import CubeRotations
-
 
 class ProcessingController:
     
@@ -20,79 +20,154 @@ class ProcessingController:
         self.state_model = state_model
         self.controls_view = controls_view
         
+        # Internal flag for single-shot capture
+        self._capture_requested = False
+        
         # Connect model signals
         self.webcam_model.frame_captured.connect(self._process_frame)
         self.state_model.state_changed.connect(self._on_state_changed)
+        
+        # Connect View Buttons
         self.controls_view.next_step_clicked.connect(self.handle_next_step)
         self.controls_view.prev_step_clicked.connect(self.handle_prev_step)
+        self.controls_view.reset_clicked.connect(self.handle_reset)
+        self.controls_view.detect_clicked.connect(self._on_detect_clicked)
+
+        # --- NEW: Connect the Resolve Button ---
+        self.controls_view.resolve_clicked.connect(self._on_resolve_clicked)
 
         self.last_move = None
         self.last_cube_colors = None
 
+    def _on_detect_clicked(self):
+        """Called immediately when 'Detect' is clicked."""
+        print(">>> BUTTON CLICKED: Requesting Capture...")
+        self._capture_requested = True
+
+    # --- NEW: Handle the Resolve transition ---
+    def _on_resolve_clicked(self):
+        """Called when the user clicks 'Resolve' and validation passes."""
+        print(">>> RESOLVE CLICKED: Transitioning to Resolution State.")
+        self.state_model.state = AppState.DETECTED
+
     def _on_state_changed(self, state: AppState):
-        if state == AppState.DETECTING:
-            # Reset the Cube Model for a new scan session
-            if self.cube_model:
-                self.cube_model.colors = np.full((6, 3, 3), '?', dtype=str)
-            
-            # Clear Undo History
-            self.last_move = None
-            self.last_cube_colors = None
-            
+        if state == AppState.DETECTED:
+            print(">>> CUBE COMPLETED. Ready for resolution.")
         elif state == AppState.SOLVED:
             self.last_move = None
             self.last_cube_colors = None
-            print("Resolution complete: Cube is solved.")
+            print("Resolution complete")
     
-    def _process_frame(self, frame: np.ndarray):
-
-        if self.state_model.state != AppState.DETECTING:
-            return
+    def handle_reset(self):
+        if self.cube_model:
+            print("Resetting Cube Model")
+            self.cube_model.colors = np.full((6,3,3),'?', dtype = str)
+            self.cube_model.set_rotation(15, 15, 0)
+            
+            # Disable the resolve button on reset
+            if self.controls_view:
+                self.controls_view.disable_resolve()
+                self.controls_view.faces = [] 
         
         detection_method_name = self.configuration_model.current_detection_method
         detection_method = self.configuration_model.get_detection_method(detection_method_name)
-
-        processed_frame, detected_colors, rotation = detection_method.process(frame)
-        
-        # --- MERGE LOGIC START ---
-        if self.cube_model is not None:
-            # Get current state from model (to preserve previous scans)
-            current_state = self.cube_model.colors.copy()
-            
-            # Identify which faces in the new detection are valid (not '?')
-            # The detector returns a 6x3x3 array where only the identified face is filled
-            mask = detected_colors != '?'
-            
-            if np.any(mask):
-                # Update only the valid new detections
-                current_state[mask] = detected_colors[mask]
-                self.cube_model.colors = current_state
-            
-            # Update rotation if provided by detection method
-            if rotation is not None:
-                self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
-        # --- MERGE LOGIC END ---
-        
-        self.view.display_frame(processed_frame)
+        if detection_method:
+            detection_method.reset()
     
+    def _process_frame(self, frame: np.ndarray):
+        detection_method_name = self.configuration_model.current_detection_method
+        detection_method = self.configuration_model.get_detection_method(detection_method_name)
+
+        if not detection_method:
+            self.view.display_frame(frame)
+            return
+
+        # 1. ALWAYS Run Detection (Visual Feedback)
+        processed_frame, full_cube_state, rotation = detection_method.process(frame)
+        
+        # 2. Extract Center Sticker
+        detected_face_colors = None
+        center_raw = '?'
+        detected_index = -1
+        
+        for i in range(6):
+            if full_cube_state[i][1, 1] != '?':
+                detected_face_colors = full_cube_state[i]
+                detected_index = i
+                center_raw = str(detected_face_colors[1, 1])
+                break
+        
+        # 3. Status Text
+        h, w = processed_frame.shape[:2]
+        if self.state_model.state == AppState.DETECTED:
+             cv2.putText(processed_frame, "Cube Complete!", (10, 30), 
+                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        elif center_raw == '?':
+            cv2.putText(processed_frame, "Align Grid / Center Unknown", (10, 30), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        else:
+            cv2.putText(processed_frame, f"Ready. Center: {center_raw}", (10, 30), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+
+        # 4. SINGLE SHOT CAPTURE
+        if self._capture_requested:
+            print(f">>> Processing Capture Request. Center found: {center_raw}")
+            
+            if detected_face_colors is not None and center_raw != '?':
+                # SUCCESS: Merge & Rotate
+                self._merge_face(detected_index, detected_face_colors)
+                
+                # Update Rotation if method provided it
+                if rotation is not None:
+                    self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
+                
+                cv2.putText(processed_frame, "CAPTURED!", (w//2 - 100, h//2), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 255, 0), 5)
+            else:
+                # FAILURE
+                print("Capture ignored: No valid center sticker.")
+                cv2.putText(processed_frame, "CAPTURE FAILED", (10, h - 50), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            
+            # Reset the flag so we don't capture again automatically
+            self._capture_requested = False
+            
+            # Reset state just in case
+            if self.state_model.state == AppState.DETECTING:
+                self.state_model.state = AppState.WAITING_FOR_DETECTION
+
+        self.view.display_frame(processed_frame)
+
+    def _merge_face(self, target_index: int, new_face: np.ndarray):
+        """Merges new face, updates view data, and enables resolve if full."""
+        if target_index < 0 or target_index > 5:
+            return
+
+        current_total_state = self.cube_model.colors.copy()
+        current_total_state[target_index] = new_face
+        self.cube_model.colors = current_total_state
+        
+        # Calculate how many faces are actually filled (not '?')
+        captured_indices = [i for i in range(6) if current_total_state[i][1,1] != '?']
+        print(f"SUCCESS: Updated Face {target_index}. Faces Captured: {len(captured_indices)}/6")
+
+        # --- UPDATED LOGIC ---
+        # 1. Update the View's data so the 'Resolve' button validation works
+        self.controls_view.faces = captured_indices 
+
+        # 2. Check if complete
+        if len(captured_indices) == 6:
+            print(">>> CUBE COMPLETED. Enabling Resolve button.")
+            self.controls_view.enable_resolve()
+
     def handle_prev_step(self):
-        if self.cube_model is None: return
-        
-        resolution_method_name = self.configuration_model.current_resolution_method
-        if not resolution_method_name: return
-
-        resolution_method = self.configuration_model.get_resolution_method(resolution_method_name)
-        if not resolution_method: return
-
-        if self.last_move is None or self.last_cube_colors is None: return
-        
-        resolution_method.undo()
-        self.cube_model.colors = self.last_cube_colors
-        self.last_move = None
-        self.last_cube_colors = None
+        self._handle_step_action(undo=True)
 
     def handle_next_step(self):
-        if self.cube_model is None: return
+        self._handle_step_action(undo=False)
+
+    def _handle_step_action(self, undo: bool):
+        if not self.cube_model: return
         
         resolution_method_name = self.configuration_model.current_resolution_method
         if not resolution_method_name: return
@@ -100,21 +175,22 @@ class ProcessingController:
         resolution_method = self.configuration_model.get_resolution_method(resolution_method_name)
         if not resolution_method: return
         
-        cube_colors = self.cube_model.colors
-        move = resolution_method.solve(cube_colors)
-        
-        if move is None:
-            print("No move available!")
-            return
-        
-        self._apply_move(move)
-        self.last_move = move
-        self.last_cube_colors = cube_colors.copy()
+        if undo:
+            if self.last_move is None or self.last_cube_colors is None: return
+            resolution_method.undo()
+            self.cube_model.colors = self.last_cube_colors
+            self.last_move = None
+            self.last_cube_colors = None
+        else:
+            cube_colors = self.cube_model.colors
+            move = resolution_method.solve(cube_colors)
+            if move is None: return
+            self._apply_move(move)
+            self.last_move = move
+            self.last_cube_colors = cube_colors.copy()
     
     def _apply_move(self, move: str):
         if self.cube_model is None: return
-        
         cube_colors = self.cube_model.colors.copy()
         cube_colors = CubeRotations.apply_move(cube_colors, move)
         self.cube_model.colors = cube_colors
-        print(f"Applied move: {move}")
