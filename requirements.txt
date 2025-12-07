@@ -1,0 +1,14 @@
+streamlit==1.50.0
+streamlit-webrtc==0.63.11
+pytest==8.4.2
+watchdog==6.0.0
+opencv-python==4.12.0.88
+vpython==7.6.5
+plotly==6.3.1
+numpy
+av
+# kociemba individual install C++ 14.0 and higher are required for this to install
+# pytest-cov==6.0.0
+# List
+# random==0.20.1
+# copy==1.20.0
