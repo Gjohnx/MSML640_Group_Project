@@ -44,15 +44,10 @@ class ProcessingController:
         print(">>> BUTTON CLICKED: Requesting Capture...")
         self._capture_requested = True
 
-    # --- NEW: Handle the Resolve transition ---
-    def _on_resolve_clicked(self):
-        """Called when the user clicks 'Resolve' and validation passes."""
-        print(">>> RESOLVE CLICKED: Transitioning to Resolution State.")
-        self.state_model.state = AppState.DETECTED
-
-    def _on_state_changed(self, state: AppState):
-        if state == AppState.DETECTED:
-            print(">>> CUBE COMPLETED. Ready for resolution.")
+            # Clear moves from previous session 
+            self.last_move = None
+            self.last_cube_colors = None
+            
         elif state == AppState.SOLVED:
             self.last_move = None
             self.last_cube_colors = None
@@ -75,11 +70,29 @@ class ProcessingController:
             detection_method.reset()
     
     def _process_frame(self, frame: np.ndarray):
-        detection_method_name = self.configuration_model.current_detection_method
-        detection_method = self.configuration_model.get_detection_method(detection_method_name)
 
-        if not detection_method:
-            self.view.display_frame(frame)
+        if self.state_model.state == AppState.DETECTING:
+        
+            detection_method_name = self.configuration_model.current_detection_method
+            detection_method = self.configuration_model.get_detection_method(detection_method_name)
+
+            processed_frame, cube_colors, rotation = detection_method.process(frame)
+            if self.cube_model is not None:
+                self.cube_model.colors = cube_colors
+                # Update rotation if provided by detection method
+                if rotation is not None:
+                    self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
+            self.view.display_frame(processed_frame)
+
+            self.state_model.state = AppState.WAITING_FOR_DETECTION
+    
+    # Handle the previous step in the resolution
+    def handle_prev_step(self):
+        if self.cube_model is None:
+            return
+        
+        resolution_method_name = self.configuration_model.current_resolution_method
+        if not resolution_method_name:
             return
 
         processed_frame, full_cube_state, rotation = detection_method.process(frame)
