@@ -135,8 +135,7 @@ class DummyResolutionMethod(ResolutionMethod):
             modifier = move[1:]
             new_modifier = modifier if modifier != 'i' else "'"
             translated.append(f"{base}{new_modifier}")
-        else:
-            translated.append(move)
+            
         return translated
         # """
         # Translates moves from the Core coordinate system (Green Front) 
