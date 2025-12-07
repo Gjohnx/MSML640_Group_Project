@@ -82,10 +82,9 @@ class ProcessingController:
             self.view.display_frame(frame)
             return
 
-        # 1. ALWAYS Run Detection (Visual Feedback)
         processed_frame, full_cube_state, rotation = detection_method.process(frame)
         
-        # 2. Extract Center Sticker (For Visual Feedback Text only)
+        # 1. Extract Center Sticker (For Visual Feedback Text only)
         # We still find the 'primary' face just to show status text
         center_raw = '?'
         for i in range(6):
@@ -93,7 +92,7 @@ class ProcessingController:
                 center_raw = str(full_cube_state[i][1, 1])
                 break # Just for display text, we stop at the first one
         
-        # 3. Status Text
+        # 2. Status Text
         h, w = processed_frame.shape[:2]
         if self.state_model.state == AppState.DETECTED:
              cv2.putText(processed_frame, "Cube Complete!", (10, 30), 
@@ -105,7 +104,7 @@ class ProcessingController:
             cv2.putText(processed_frame, f"Ready. Center: {center_raw}", (10, 30), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-        # 4. CAPTURE LOGIC (Updated for Multiple Faces/Random)
+        # 3. CAPTURE LOGIC (Updated for Multiple Faces/Random)
         if self._capture_requested:
             print(f">>> Processing Capture Request.")
             
