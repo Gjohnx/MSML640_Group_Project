@@ -85,17 +85,13 @@ class ProcessingController:
         # 1. ALWAYS Run Detection (Visual Feedback)
         processed_frame, full_cube_state, rotation = detection_method.process(frame)
         
-        # 2. Extract Center Sticker
-        detected_face_colors = None
+        # 2. Extract Center Sticker (For Visual Feedback Text only)
+        # We still find the 'primary' face just to show status text
         center_raw = '?'
-        detected_index = -1
-        
         for i in range(6):
             if full_cube_state[i][1, 1] != '?':
-                detected_face_colors = full_cube_state[i]
-                detected_index = i
-                center_raw = str(detected_face_colors[1, 1])
-                break
+                center_raw = str(full_cube_state[i][1, 1])
+                break # Just for display text, we stop at the first one
         
         # 3. Status Text
         h, w = processed_frame.shape[:2]
@@ -109,14 +105,23 @@ class ProcessingController:
             cv2.putText(processed_frame, f"Ready. Center: {center_raw}", (10, 30), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-        # 4. SINGLE SHOT CAPTURE
+        # 4. CAPTURE LOGIC (Updated for Multiple Faces/Random)
         if self._capture_requested:
-            print(f">>> Processing Capture Request. Center found: {center_raw}")
+            print(f">>> Processing Capture Request.")
             
-            if detected_face_colors is not None and center_raw != '?':
-                # SUCCESS: Merge & Rotate
-                self._merge_face(detected_index, detected_face_colors)
+            faces_found_count = 0
+
+            # LOOP through ALL 6 potential faces in the state
+            for i in range(6):
+                face_data = full_cube_state[i]
                 
+                # If this face has valid data (center is not '?'), merge it
+                if face_data[1, 1] != '?':
+                    self._merge_face(i, face_data)
+                    faces_found_count += 1
+            
+            if faces_found_count > 0:
+                # SUCCESS
                 # Update Rotation if method provided it
                 if rotation is not None:
                     self.cube_model.set_rotation(rotation[0], rotation[1], rotation[2])
@@ -125,7 +130,7 @@ class ProcessingController:
                             cv2.FONT_HERSHEY_SIMPLEX, 2.0, (0, 255, 0), 5)
             else:
                 # FAILURE
-                print("Capture ignored: No valid center sticker.")
+                print("Capture ignored: No valid faces found.")
                 cv2.putText(processed_frame, "CAPTURE FAILED", (10, h - 50), 
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
             
