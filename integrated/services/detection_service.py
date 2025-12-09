@@ -9,12 +9,12 @@ class DetectionService:
     @staticmethod
     def get_all_detection_methods() -> Dict[str, DetectionMethod]:
         return {
-            "Random": RandomDetectionMethod(num_scramble_moves=20),
-            "Hardcoded": HardcodedDetectionMethod(),
+            "YOLO+CNN": YOLOCNNDetectionMethod(),
+            "QBR (Simple)": QbrDetectionMethod(), 
             "HSV (Grid Rectify)": ColorGridDetectionMethod(),
             "YOLO": YOLODetectionMethod(),
-            "YOLO+CNN": YOLOCNNDetectionMethod(),
+            "Random": RandomDetectionMethod(num_scramble_moves=20),
+            "Hardcoded": HardcodedDetectionMethod(),
             "Void": VoidDetectionMethod(),
-            "QBR (Simple)": QbrDetectionMethod(), 
 
         }
