@@ -44,3 +44,4 @@ After you have the extra library install in your environment, run the following 
 cd visualization-demo
 python visualization_test.py
 ```
+Second detailed README.md is within Integrated folder.
