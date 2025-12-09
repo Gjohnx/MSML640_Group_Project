@@ -1,0 +1,7 @@
+Beside the libraries of the main branch, here is an extra library that we need to run the visualization demo:
+
+"vpython"
+
+Install it through code:
+
+"pip install vpython"
