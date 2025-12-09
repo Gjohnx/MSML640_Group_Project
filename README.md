@@ -1,16 +1,13 @@
 # Rubik's Cube Tutor & Solver (MSML640 Group Project)
 # Member: Jianjiong Xiang, Damian Calabresi, Alexios Papazoglou, Ruikang Yan, Xiaolong Zhu
 
-### Prerequisites
+# Prerequisites
 - Python 3.13 (or 3.10+)
 - Webcam
 - C++ 14.0 or higher
+- Python dependencies listed in `integrated/requirements.txt`
 
 # Modules
-
-## Core
-
-This section contains the main algorithms implemented for the resolution of the Rubik's Cube. The logic implemented by this algorithms has already been integrated into the application localed in the `integrated` folder.
 
 ## Integrated
 
@@ -26,12 +23,21 @@ Two neural networks are used to detect the colors of the Rubik's Cube:
 - Object Detection: Used to detect the box in the image where the Rubik's Cube is located.
 - Color Detection: Receiving a 100x100 picture of one of the Cube faces, returns the color of the 9 tiles of the face.
 
+For more information about the neural networks, please refer to the [README.md](neural-networks/README.md) file.
+
+## Core
+
+This section contains the main algorithms implemented for the resolution of the Rubik's Cube. The logic implemented by this algorithms has already been integrated into the application localed in the `integrated` folder.
+
+This module is maintained for historical purposes.
+
 # How to Run
 
 ## Integrated UI with PySide6
 
 ```bash
-cd integrated
+cd integrated/
+pip install -r requirements.txt
 python main.py
 ```
 
