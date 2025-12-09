@@ -1,0 +1,3 @@
+To the "integrated" folder and type the following in the terminal:
+
+MSML640_Group_Project\Scripts\activate
