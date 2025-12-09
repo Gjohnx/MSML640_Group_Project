@@ -1,6 +1,0 @@
-train: gs://msml640-dataset/datasets/dataset/train/images
-val: gs://msml640-dataset/datasets/dataset/valid/images
-test: gs://msml640-dataset/datasets/dataset/test/images
-
-nc: 1
-names: ['Cube']
