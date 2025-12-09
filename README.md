@@ -1,21 +1,27 @@
 # Rubik's Cube Tutor & Solver (MSML640 Group Project)
-# Member: Jianjiong Xiang, Damian Calabresi, Alexios Papazoglou, Ruikang Yan, Xiaolong Zhu
 
-# Prerequisites
+## Members
+- Jianjiong Xiang
+- Damian Calabresi
+- Alexios Papazoglou
+- Ruikang Yan
+- Xiaolong Zhu
+
+## Prerequisites
 - Python 3.13 (or 3.10+)
 - Webcam
 - C++ 14.0 or higher
 - Python dependencies listed in `integrated/requirements.txt`
 
-# Modules
+## Modules
 
-## Integrated
+### Integrated
 
 This is the main application that combines the UI with the MVC pattern. To run the Rubik's Cube Solver, run this module.
 
 For more information about the architecture of the application, please refer to the [README.md](integrated/README.md) file.
 
-## Neural Networks
+### Neural Networks
 
 This section contains the code, assets and scripts used to generate the synthetic data, train the neural networks and test the inference of these models.
 
@@ -25,15 +31,15 @@ Two neural networks are used to detect the colors of the Rubik's Cube:
 
 For more information about the neural networks, please refer to the [README.md](neural-networks/README.md) file.
 
-## Core
+### Core
 
 This section contains the main algorithms implemented for the resolution of the Rubik's Cube. The logic implemented by this algorithms has already been integrated into the application localed in the `integrated` folder.
 
 This module is maintained for historical purposes.
 
-# How to Run
+## How to Run
 
-## Integrated UI with PySide6
+### Integrated UI with PySide6
 
 ```bash
 cd integrated/
