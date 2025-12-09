@@ -2,6 +2,11 @@
 
 ## Installation and Running the Application
 
+### Prerequisites
+- Python 3.10 or newer
+- A working webcam
+- C++ 14.0 or higher 
+
 1. Install dependencies:
 ```bash
 pip install -r requirements.txt

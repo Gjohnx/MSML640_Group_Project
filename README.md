@@ -1,12 +1,19 @@
-# MSML640_Group_Project
+# Rubik's Cube Tutor & Solver (MSML640 Group Project)
+# Member: Jianjiong Xiang, Damian Calabresi, Alexios Papazoglou, Ruikang Yan, Xiaolong Zhu
 
-# Requirements
-
-The following runtimes and libraries have been installed to run this project:
-- Python 3.13
-- Dependencies: See requirements.txt
+### Prerequisites
+- Python 3.13 (or 3.10+)
+- Webcam
+- C++ 14.0 or higher
 
 # How to Run
+
+## For same result as *Demo*, change branch to *Baseline-1* and run the following code:
+
+```bash
+cd integrated
+python main.py
+```
 
 ## Integrated UI with PySide6
 
@@ -37,3 +44,4 @@ After you have the extra library install in your environment, run the following 
 cd visualization-demo
 python visualization_test.py
 ```
+Second detailed README.md is within Integrated folder.
