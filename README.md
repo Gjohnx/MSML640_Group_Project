@@ -37,3 +37,9 @@ After you have the extra library install in your environment, run the following 
 cd visualization-demo
 python visualization_test.py
 ```
+
+## Original Corner Detection + Color Boost code:
+
+```bash
+https://colab.research.google.com/drive/1q0mjwDTnW7f0SfodoFUBK_v94kPhvmFP?usp=sharing
+```
