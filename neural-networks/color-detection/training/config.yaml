@@ -1,0 +1,39 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: n1-standard-4
+      acceleratorType: NVIDIA_TESLA_T4
+      acceleratorCount: 1
+    replicaCount: 1
+    containerSpec:
+      # Custom Docker image with all dependencies pre-installed
+      # Update this URI after running build_and_push_docker.sh
+      imageUri: us-central1-docker.pkg.dev/msml640/vertex-ai/yolo11-rubiks-cube:latest
+      command:
+        - /bin/bash
+        - -c
+        - |
+          # Download training script from GCS
+          gsutil cp gs://msml640-dataset/color-detection/train_cnn.py /tmp/train_cnn.py
+          # Prepare local directories
+          mkdir -p /tmp/synthetic-data/resized /tmp/synthetic-data/labels /tmp/models
+          # Download dataset from GCS
+          gsutil -m cp -r gs://msml640-dataset/color-detection/dataset/synthetic-data/resized /tmp/synthetic-data/
+          gsutil cp gs://msml640-dataset/color-detection/dataset/synthetic-data/labels/labels_numeric.csv /tmp/synthetic-data/labels/labels_numeric.csv
+
+          ls -la /tmp/synthetic-data/resized/
+          ls -la /tmp/synthetic-data/labels/
+          ls -la /tmp/models/
+
+          
+          python /tmp/train_cnn.py \
+            --data-dir /tmp/synthetic-data/resized/ \
+            --labels /tmp/synthetic-data/labels/labels_numeric.csv \
+            --batch-size 4 \
+            --epochs 1000 \
+            --val-ratio 0.15 \
+            --output-dir /tmp/models
+
+            # Upload model to GCS
+            gsutil cp /tmp/models/cube_cnn.pt gs://msml640-dataset/color-detection/models/cube_cnn.pt
+scheduling:
+  strategy: SPOT

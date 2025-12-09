@@ -56,3 +56,8 @@ $RECYCLE.BIN/
 logs/
 temp/
 tmp/
+
+remove_background.py
+capture_images.py
+rotate_left.py
+replace_characters.py
