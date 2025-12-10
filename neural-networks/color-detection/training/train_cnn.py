@@ -88,23 +88,27 @@ class CubeCNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 48, kernel_size=3, padding=1),
-            nn.BatchNorm2d(48),
+            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.02),
+            nn.MaxPool2d(2),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
             nn.Dropout2d(0.03),
             nn.MaxPool2d(2),
-            nn.Conv2d(48, 96, kernel_size=3, padding=1),
-            nn.BatchNorm2d(96),
-            nn.ReLU(inplace=True),
-            nn.Dropout2d(0.03),
-            nn.MaxPool2d(2),
-            nn.Conv2d(96, 192, kernel_size=3, padding=1),
-            nn.BatchNorm2d(192),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Dropout2d(0.05),
             nn.MaxPool2d(2),
-            nn.Conv2d(192, 192, kernel_size=3, padding=1),
-            nn.BatchNorm2d(192),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Dropout2d(0.05),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
             nn.Dropout2d(0.05),
             nn.AdaptiveAvgPool2d((4, 4)),
@@ -112,10 +116,10 @@ class CubeCNN(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(192 * 4 * 4, 384),
+            nn.Linear(256 * 4 * 4, 512),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.2),
-            nn.Linear(384, 9 * 6),
+            nn.Dropout(0.15),
+            nn.Linear(512, 9 * 6),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -205,6 +209,9 @@ def train_model(
 ):
     criterion = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=epochs, eta_min=lr * 0.05
+    )
 
     best_val_loss = float("inf")
     best_path = output_dir / "cube_cnn.pt"
@@ -222,6 +229,8 @@ def train_model(
             f"Val tile acc {val_metrics['tile_acc']:.3f} | "
             f"Val face acc {val_metrics['face_acc']:.3f}"
         )
+
+        scheduler.step()
 
         if val_metrics["loss"] < best_val_loss:
             best_val_loss = val_metrics["loss"]
@@ -248,10 +257,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=3e-3)
-    parser.add_argument("--weight-decay", type=float, default=1e-3)
+    parser.add_argument("--weight-decay", type=float, default=3e-4)
     parser.add_argument("--num-workers", type=int, default=2)
     parser.add_argument("--val-ratio",type=float,default=0.15)
-    parser.add_argument("--label-smoothing",type=float,default=0.05)
+    parser.add_argument("--label-smoothing",type=float,default=0.01)
     parser.add_argument("--patience",type=int,default=40)
     parser.add_argument("--output-dir",type=Path,default=Path(__file__).resolve().parent / "models")
     parser.add_argument("--seed", type=int, default=42)

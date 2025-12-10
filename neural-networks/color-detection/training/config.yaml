@@ -28,7 +28,7 @@ workerPoolSpecs:
           python /tmp/train_cnn.py \
             --data-dir /tmp/synthetic-data/resized/ \
             --labels /tmp/synthetic-data/labels/labels_numeric.csv \
-            --batch-size 4 \
+            --batch-size 32 \
             --epochs 1000 \
             --val-ratio 0.15 \
             --output-dir /tmp/models
